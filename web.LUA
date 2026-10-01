@@ -19,7 +19,6 @@ local WEBHOOK_EVENT              = ""
 local WEBHOOK_MUTASI             = ""
 local WEBHOOK_CHECKPLAYER        = ""
 local WEBHOOK_AVATAR             = ""
-local PROXY                      = "https://square-haze-a007.remediashop.workers.dev"
 local SCRIPT_ACTIVE              = false
 local MONITOR_SESSION            = 0
 local SCRIPT_TERMINATED          = false
@@ -1530,9 +1529,66 @@ local function ParseChat(rawMsg)
     return { player = playerName, fish = fishFull, weight = weight }
 end
 
+-- Ambil avatar headshot langsung dari Roblox, tanpa PROXY lama.
+-- Endpoint resmi Roblox mengembalikan JSON; yang dipakai Discord adalah
+-- imageUrl di dalam response (URL CDN tr.rbxcdn.com).
 local function GetAvatarUrlById(userId)
     if not userId then return nil end
-    return PROXY .. "/avatar/" .. tostring(userId) .. "?t=" .. tostring(os.time())
+
+    local uid = tostring(userId)
+    local apiUrl = "https://thumbnails.roblox.com/v1/users/avatar-headshot"
+        .. "?userIds=" .. uid
+        .. "&size=420x420&format=Png&isCircular=false"
+
+    local body
+
+    -- Jalur utama: executor yang menyediakan game:HttpGet.
+    local ok, result = pcall(function()
+        return game:HttpGet(apiUrl)
+    end)
+
+    if ok and type(result) == "string" and result ~= "" then
+        body = result
+    end
+
+    -- Fallback: gunakan request function executor kalau game:HttpGet tidak tersedia.
+    if not body then
+        local requestFunc = GetRequestFunc()
+        if requestFunc then
+            local okReq, response = pcall(function()
+                return requestFunc({
+                    Url = apiUrl,
+                    Method = "GET",
+                    Headers = { ["Accept"] = "application/json" },
+                })
+            end)
+
+            if okReq and response then
+                body = response.Body or response.body
+            end
+        end
+    end
+
+    if not body then
+        warn("[M B G DEBUG] Gagal mengambil avatar Roblox untuk UserId " .. uid)
+        return nil
+    end
+
+    local okJson, data = pcall(function()
+        return HttpService:JSONDecode(body)
+    end)
+
+    if not okJson or type(data) ~= "table" or type(data.data) ~= "table" then
+        warn("[M B G DEBUG] Response avatar Roblox tidak valid untuk UserId " .. uid)
+        return nil
+    end
+
+    local item = data.data[1]
+    if type(item) ~= "table" then return nil end
+    if item.state ~= "Completed" then return nil end
+    if type(item.imageUrl) ~= "string" or item.imageUrl == "" then return nil end
+
+    return item.imageUrl
 end
 
 -- ============================================================
