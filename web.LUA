@@ -1529,66 +1529,66 @@ local function ParseChat(rawMsg)
     return { player = playerName, fish = fishFull, weight = weight }
 end
 
--- Ambil avatar headshot langsung dari Roblox, tanpa PROXY lama.
--- Endpoint resmi Roblox mengembalikan JSON; yang dipakai Discord adalah
--- imageUrl di dalam response (URL CDN tr.rbxcdn.com).
-local function GetAvatarUrlById(userId)
+local CLOUDINARY_CLOUD_NAME = "pd5qqwr4"
+local CLOUDINARY_WATERMARK_ID = "D3770010-C528-4FA2-B72B-98C0D25646B5"
+
+local function Base64EncodeUrl(url)
+    local ok, result = pcall(function()
+        if syn and syn.crypt and syn.crypt.base64 and syn.crypt.base64.encode then
+            return syn.crypt.base64.encode(url)
+        end
+        if crypt and crypt.base64 and crypt.base64encode then
+            return crypt.base64encode(url)
+        end
+        if base64 and base64.encode then
+            return base64.encode(url)
+        end
+        error("Base64 encoder unavailable")
+    end)
+    return ok and result or nil
+end
+
+local function GetRobloxAvatarUrlById(userId)
     if not userId then return nil end
 
-    local uid = tostring(userId)
-    local apiUrl = "https://thumbnails.roblox.com/v1/users/avatar-headshot"
-        .. "?userIds=" .. uid
-        .. "&size=420x420&format=Png&isCircular=false"
-
-    local body
-
-    -- Jalur utama: executor yang menyediakan game:HttpGet.
-    local ok, result = pcall(function()
-        return game:HttpGet(apiUrl)
+    local ok, body = pcall(function()
+        return game:HttpGet(
+            "https://thumbnails.roblox.com/v1/users/avatar-headshot"
+            .. "?userIds=" .. tostring(userId)
+            .. "&size=420x420&format=Png&isCircular=false"
+        )
     end)
+    if not ok then return nil end
 
-    if ok and type(result) == "string" and result ~= "" then
-        body = result
-    end
-
-    -- Fallback: gunakan request function executor kalau game:HttpGet tidak tersedia.
-    if not body then
-        local requestFunc = GetRequestFunc()
-        if requestFunc then
-            local okReq, response = pcall(function()
-                return requestFunc({
-                    Url = apiUrl,
-                    Method = "GET",
-                    Headers = { ["Accept"] = "application/json" },
-                })
-            end)
-
-            if okReq and response then
-                body = response.Body or response.body
-            end
-        end
-    end
-
-    if not body then
-        warn("[M B G DEBUG] Gagal mengambil avatar Roblox untuk UserId " .. uid)
-        return nil
-    end
-
-    local okJson, data = pcall(function()
+    local decodedOk, data = pcall(function()
         return HttpService:JSONDecode(body)
     end)
+    if not decodedOk or not data or not data.data or not data.data[1] then return nil end
+    if data.data[1].state ~= "Completed" then return nil end
 
-    if not okJson or type(data) ~= "table" or type(data.data) ~= "table" then
-        warn("[M B G DEBUG] Response avatar Roblox tidak valid untuk UserId " .. uid)
-        return nil
+    return data.data[1].imageUrl
+end
+
+local function GetAvatarUrlById(userId)
+    local avatarUrl = GetRobloxAvatarUrlById(userId)
+    if not avatarUrl then return nil end
+
+    -- Cloudinary: watermark menjadi BASE/BACKGROUND, avatar Roblox menjadi OVERLAY/FRONT.
+    -- Jadi urutannya: watermark di belakang -> avatar Roblox di depan.
+    -- Ini hanya dynamic fetch/transform; tidak meng-upload file avatar baru ke Cloudinary.
+    local encodedAvatar = Base64EncodeUrl(avatarUrl)
+    if not encodedAvatar then
+        warn("[M B G Avatar] Base64 encoder tidak tersedia, fallback ke avatar Roblox.")
+        return avatarUrl
     end
 
-    local item = data.data[1]
-    if type(item) ~= "table" then return nil end
-    if item.state ~= "Completed" then return nil end
-    if type(item.imageUrl) ~= "string" or item.imageUrl == "" then return nil end
+    local cloudinaryUrl = "https://res.cloudinary.com/" .. CLOUDINARY_CLOUD_NAME
+        .. "/image/upload/c_fill,w_420,h_420"
+        .. "/l_fetch:" .. encodedAvatar
+        .. "/c_fill,w_420,h_420/fl_layer_apply"
+        .. "/" .. CLOUDINARY_WATERMARK_ID
 
-    return item.imageUrl
+    return cloudinaryUrl
 end
 
 -- ============================================================
