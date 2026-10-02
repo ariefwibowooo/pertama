@@ -113,6 +113,30 @@ local MemberList = {
 }
 
 -- ============================================================
+--  VERIFIED BADGE (KHUSUS TALON)
+--  Hanya untuk tampilan nama pada notif Obtained/webhook.
+--  Tidak memengaruhi username, mention, parsing, atau deteksi.
+-- ============================================================
+
+local VERIFIED_DISPLAY = "TALON"
+local VERIFIED_EMOJI   = "<:TALON:1555710652029599894>"
+
+local function GetVerifiedName(playerName)
+    if not playerName then
+        return ""
+    end
+
+    playerName = tostring(playerName)
+
+    if string.lower(playerName) == string.lower(VERIFIED_DISPLAY) then
+        return playerName .. " " .. VERIFIED_EMOJI
+    end
+
+    return playerName
+end
+
+
+-- ============================================================
 --  DATABASE
 -- ============================================================
 
@@ -1649,7 +1673,7 @@ local function CheckAndSend(rawMsg)
     if legendaryBase then
         local imageUrl = GetFishImageURL(legendaryBase) or (FishImageCache[legendaryBase] and (PROXY .. "/asset/" .. FishImageCache[legendaryBase]))
         SendFishWebhook(EMOJI_LEGENDARY .. " Crystalized Legendary!", "", TierColors.Legendary, {
-            { name = SEP .. " Pemain", value = "**" .. data.player .. "**", inline = true },
+            { name = SEP .. " Pemain", value = "**" .. GetVerifiedName(data.player) .. "**", inline = true },
             { name = SEP .. " Item",   value = "**" .. data.fish .. "**",   inline = true },
             { name = SEP .. " Berat",  value = "**" .. data.weight .. "**", inline = true },
         }, nil, imageUrl, nil, "secret")
@@ -1662,7 +1686,7 @@ local function CheckAndSend(rawMsg)
     if mythicBase then
         local imageUrl = GetFishImageURL(mythicBase) or (FishImageCache[mythicBase] and (PROXY .. "/asset/" .. FishImageCache[mythicBase]))
         SendFishWebhook(EMOJI_NOTIF .. " Mythic Fish Detected!", "", TierColors.Mitos, {
-            { name = SEP .. " Pemain", value = "**" .. data.player .. "**", inline = true },
+            { name = SEP .. " Pemain", value = "**" .. GetVerifiedName(data.player) .. "**", inline = true },
             { name = SEP .. " Ikan",   value = "**" .. data.fish .. "**",   inline = true },
             { name = SEP .. " Berat",  value = "**" .. data.weight .. "**", inline = true },
         }, nil, imageUrl, GetMention(data.player), "secret")
@@ -1673,7 +1697,7 @@ local function CheckAndSend(rawMsg)
     if rubyBase then
         local imageUrl = GetFishImageURL(rubyBase) or (FishImageCache[rubyBase] and (PROXY .. "/asset/" .. FishImageCache[rubyBase]))
         SendFishWebhook(EMOJI_RUBY .. " Ruby Gemstone!", "", TierColors.Ruby, {
-            { name = SEP .. " Pemain", value = "**" .. data.player .. "**", inline = true },
+            { name = SEP .. " Pemain", value = "**" .. GetVerifiedName(data.player) .. "**", inline = true },
             { name = SEP .. " Item",   value = "**" .. data.fish .. "**",   inline = true },
             { name = SEP .. " Berat",  value = "**" .. data.weight .. "**", inline = true },
         }, nil, imageUrl, nil, "secret")
@@ -1693,7 +1717,7 @@ local function CheckAndSend(rawMsg)
         local chanceInfo  = FishChanceData[baseName] or "Unknown"
         local mutasiField = mutasi and (EMOJI_MUTASI .. " *" .. mutasi .. "*") or "—"
         local fields = {
-            { name = SEP .. " Pemain", value = "**" .. data.player .. "**", inline = true },
+            { name = SEP .. " Pemain", value = "**" .. GetVerifiedName(data.player) .. "**", inline = true },
             { name = SEP .. " Ikan",   value = "**" .. data.fish .. "**",   inline = true },
             { name = SEP .. " Berat",  value = "**" .. data.weight .. "**", inline = true },
             { name = SEP .. " Mutasi", value = mutasiField,                  inline = true },
@@ -1718,7 +1742,7 @@ local function CheckAndSend(rawMsg)
     SendMutasiWebhook(
         EMOJI_MUTASI .. " Mutasi Terdeteksi!", "", TierColors.Mutasi,
         {
-            { name = SEP .. " Pemain", value = "**" .. data.player .. "**",            inline = true },
+            { name = SEP .. " Pemain", value = "**" .. GetVerifiedName(data.player) .. "**",            inline = true },
             { name = SEP .. " Ikan",   value = "**" .. data.fish .. "**",              inline = true },
             { name = SEP .. " Berat",  value = "**" .. data.weight .. "**",            inline = true },
             { name = SEP .. " Mutasi", value = EMOJI_MUTASI .. " " .. mutasiDetected,  inline = true },
