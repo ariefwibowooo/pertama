@@ -73,7 +73,7 @@ local SEP                        = EMOJI_SEPARATOR
 -- ============================================================
 
 local MemberList = {
-    { username = "bowojan821",       display = "BALJITOT",             id = "219002813806673930" },
+    { username = "bowojan821",       display = "TALON",                id = "219002813806673930" },
     { username = "strawvxntae",      display = "berry",                id = {"1472281518704693349", "219002813806673930"} },
     { username = "aangdul",          display = "Jiikakamulasatu",      id = "248297103971975169" },
     { username = "aangdulre",        display = "VermiOnie",            id = "248297103971975169" },
