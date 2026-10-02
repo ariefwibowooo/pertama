@@ -636,18 +636,35 @@ local function FormatNumber(n)
 end
 
 local function FindPlayer(name)
+    if not name then return nil end
+    name = Trim(tostring(name))
+    if name == "" then return nil end
+
+    -- Exact Roblox username/display name lebih diutamakan.
     local p = Players:FindFirstChild(name)
     if p then return p end
+
     local lower = string.lower(name)
     for _, player in ipairs(Players:GetPlayers()) do
-        if string.lower(player.Name) == lower then return player end
-    end
-    for _, player in ipairs(Players:GetPlayers()) do
-        if string.find(string.lower(player.Name), lower, 1, true)
-        or string.find(lower, string.lower(player.Name), 1, true) then
+        if string.lower(player.Name) == lower
+        or string.lower(player.DisplayName) == lower then
             return player
         end
     end
+
+    -- Fallback substring untuk format nama yang masih membawa sedikit
+    -- tambahan karakter dari pesan server.
+    for _, player in ipairs(Players:GetPlayers()) do
+        local usernameLower = string.lower(player.Name)
+        local displayLower  = string.lower(player.DisplayName)
+        if string.find(usernameLower, lower, 1, true)
+        or string.find(lower, usernameLower, 1, true)
+        or string.find(displayLower, lower, 1, true)
+        or string.find(lower, displayLower, 1, true) then
+            return player
+        end
+    end
+
     return nil
 end
 
@@ -1536,21 +1553,81 @@ end
 -- ============================================================
 
 local function ParseChat(rawMsg)
-    local msg = StripTags(rawMsg)
+    if not rawMsg then return nil end
+
+    -- Bersihkan RichText/tag dan prefix [Server] tanpa mengubah isi nama/ikan.
+    local msg = StripTags(tostring(rawMsg))
     msg = string.gsub(msg, "^%[Server%]:%s*", "")
-    local playerName, fishFull, weight = string.match(msg, "^(.-) obtained an? (.-) %(([%d%.%a]+ ?kg)%)")
+    msg = Trim(msg)
+    if msg == "" then return nil end
+
+    -- ========================================================
+    -- PARSER UTAMA (format lama)
+    -- Dipertahankan lebih dulu agar format yang selama ini sudah
+    -- terbaca tetap diproses dengan cara yang sama.
+    -- ========================================================
+    local playerName, fishFull, weight = string.match(
+        msg,
+        "^(.-) obtained an? (.-) %(([%d%.%a]+ ?kg)%)"
+    )
+
     if not playerName then
         playerName, fishFull = string.match(msg, "^(.-) obtained an? (.+)")
         weight = "N/A"
     end
+
+    -- ========================================================
+    -- FALLBACK PARSER
+    -- Dipakai kalau format chat sedikit berbeda (huruf besar/kecil,
+    -- spasi, tag, atau bagian berat tidak persis seperti parser lama).
+    -- ========================================================
+    if not playerName or not fishFull then
+        local lowerMsg = string.lower(msg)
+        local obtainedStart, obtainedEnd = string.find(lowerMsg, " obtained ", 1, true)
+
+        if obtainedStart and obtainedEnd then
+            playerName = Trim(string.sub(msg, 1, obtainedStart - 1))
+            local rest = Trim(string.sub(msg, obtainedEnd + 1))
+
+            -- Hapus artikel "a" / "an" di depan nama ikan.
+            rest = string.gsub(rest, "^[Aa][Nn]%s+", "", 1)
+            rest = string.gsub(rest, "^[Aa]%s+", "", 1)
+
+            -- Ambil berat bila ada: (200kg), (15 kg), (12.5kg), dll.
+            local parsedWeight
+            local fishPart, w = string.match(rest, "^(.-)%s+%(([%d%.]+%s*[kK][gG])%)")
+            if fishPart and w then
+                fishFull = Trim(fishPart)
+                parsedWeight = Trim(w)
+            else
+                fishFull = rest
+                parsedWeight = "N/A"
+            end
+
+            weight = parsedWeight
+        end
+    end
+
     if not playerName or not fishFull then return nil end
+
     playerName = playerName:match("%[%a+%]:%s*(.+)") or playerName
     playerName = Trim(playerName)
     weight     = weight and Trim(weight) or "N/A"
-    fishFull   = fishFull:match("^(.-)%s+with a 1 in") or fishFull
-    fishFull   = fishFull:match("^(.-)%s*[!%.]?$")     or fishFull
-    fishFull   = Trim(fishFull)
-    return { player = playerName, fish = fishFull, weight = weight }
+
+    -- Buang bagian peluang yang bukan bagian nama ikan.
+    fishFull = fishFull:match("^(.-)%s+with a 1 in") or fishFull
+
+    -- Buang tanda baca penutup dari pesan.
+    fishFull = fishFull:match("^(.-)%s*[!%.]?$") or fishFull
+    fishFull = Trim(fishFull)
+
+    if playerName == "" or fishFull == "" then return nil end
+
+    return {
+        player = playerName,
+        fish   = fishFull,
+        weight = weight,
+    }
 end
 
 local CLOUDINARY_CLOUD_NAME = "pd5qqwr4"
