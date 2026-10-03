@@ -164,7 +164,7 @@ local SecretFishList = {
     "Colossal Shipwreck Crab", "Astrelle", "Moonwake Ray", "Astralune", "Starglass Guardian",
     "Pelagon", "Crimson Dreadtusk", "Riftborn Arowana", "Stormshell Brute", "Pyrocoil",
     "Wintertusk Mammofin", "Ashen Kingfish", "Tribunal Withering Core", "ELEMENTAL HYDRA", "OVERLORD HYDRA", 
-    "Everbloom", "Mr Money Bags", "Shellshock X", "VeloByte", "Cenobyte.EXE",
+    "Everbloom", "Mr Money Bags", "Shellshock X", "VeloByte", "Cenobyte.EXE", GigaByte!,
 }
 
 local ForgottenList = {
@@ -191,13 +191,13 @@ local MutasiList = {
 -- dari teks sebelum nyari kata mutasi, jadi sisa "STONE"/"Big" itu yang dicek ke MutasiList,
 -- bukan kata "Aurora"/"Abyssal"/"Midnight" yang nempel di nama spesiesnya sendiri.
 local MutasiFalsePositiveSpecies = {
-    "abyssal maw angler",
-    "aurora grouper",
-    "aurora starfish",
-    "aurora narwhal",
-    "aurora manatee",
-    "aurora buterfly fish",
-    "midnight star squid",
+    "Abyssal Maw Angler",
+    "Aurora Grouper",
+    "Aurora Starfish",
+    "Aurora Narwhal",
+    "Aurora Manatee",
+    "Aurora Buterfly Fish",
+    "Midnight Star Squid",
 }
 
 local LegendaryCrystalList = {
@@ -322,11 +322,13 @@ local FishChanceData = {
     ["VeloByte"]                  = "1 in 5M",
     ["Shellshock X"]              = "1 in 3M",
     ["Cenobyte.EXE"]              = "1 in 25M",
+    ["GigaByte!"]                 = "1 in ??",
 }
 
 local NP = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main"
 
 local FishImageURL = {
+    ["GigaByte!"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/OTW.png",
     ["Cenobyte.EXE"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/IMG_3205.png",
     ["Shellshock X"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/ShellshockX.PNG",
     ["next"]                     = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/NEXT.PNG",
