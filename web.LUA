@@ -1277,7 +1277,7 @@ local function SendMonitorStartedWebhook(allPlayers, names)
             "Server monitor sudah aktif",
             TierColors.Join,
             {
-                { name = SEP .. " Host Server",  value = "SERVER BANG ADULLLLL",                    inline = true },
+                { name = SEP .. " Host Server",  value = "SERVER BANG DUL",                    inline = true },
                 { name = SEP .. " Total Player", value = "**" .. tostring(#allPlayers) .. "** orang", inline = true },
                 { name = SEP .. " Daftar Player", value = "```\n" .. table.concat(names, ", ") .. "```", inline = false },
             }
@@ -1414,7 +1414,7 @@ local function SendEventWebhook(eventData, rawText)
             eventData.description,
             eventData.color,
             {
-                { name = SEP .. " Host Server",  value = "SERVER BANG ADULLLLL",              inline = true },
+                { name = SEP .. " Host Server",  value = "SERVER BANG DUL",              inline = true },
                 { name = SEP .. " Total Player", value = "**" .. tostring(#Players:GetPlayers()) .. "** orang", inline = true },
                 { name = SEP .. " Berakhir Pada", value = "<t:" .. tostring(endTime) .. ":R>", inline = true },
             },
@@ -2035,93 +2035,195 @@ local function GetElementPlayerNames(element)
     local function AddPlayer(player)
         if not player or seen[player.UserId] then return end
         seen[player.UserId] = true
+
         local displayName = tostring(player.DisplayName or "")
-        if displayName == "" then displayName = tostring(player.Name or "Unknown") end
+        if displayName == "" then
+            displayName = tostring(player.Name or "Unknown")
+        end
+
         table.insert(names, displayName)
     end
 
-    local function PlayerFromPart(part)
-        local current = part
-        for _ = 1, 20 do
-            if not current then break end
-            local player = Players:GetPlayerFromCharacter(current)
-            if player then return player end
-            current = current.Parent
-        end
-        return nil
+    local function GetCharacterRoot(player)
+        local character = player and player.Character
+        if not character then return nil end
+
+        return character:FindFirstChild("HumanoidRootPart")
+            or character.PrimaryPart
     end
 
-    local function ScanBox(cframe, size)
-        if not cframe or not size then return end
+    local function GetPlateCenterAndSize(plateModel)
+        if not plateModel then return nil, nil end
 
-        -- 1) Root position: tetap bisa menemukan player walau hanya satu
-        -- bagian Character yang berada tepat di atas plate.
-        local half = size / 2
-        for _, player in ipairs(Players:GetPlayers()) do
-            local character = player.Character
-            local root = character and character:FindFirstChild("HumanoidRootPart")
-            if root then
-                local lp = cframe:PointToObjectSpace(root.Position)
-                if math.abs(lp.X) <= half.X
-                    and math.abs(lp.Y) <= half.Y
-                    and math.abs(lp.Z) <= half.Z then
-                    AddPlayer(player)
-                end
-            end
-        end
-
-        -- 2) Semua part Character yang menyentuh area plate.
-        local params = OverlapParams.new()
-        params.FilterType = Enum.RaycastFilterType.Exclude
-        params.FilterDescendantsInstances = {}
-        local ok, hits = pcall(function()
-            return Workspace:GetPartBoundsInBox(cframe, size, params)
-        end)
-        if ok and hits then
-            for _, part in ipairs(hits) do
-                AddPlayer(PlayerFromPart(part))
-            end
-        end
-    end
-
-    local function ScanPlate(plateModel)
-        local ok, boxCFrame, boxSize = pcall(function()
+        local ok, cf, size = pcall(function()
             if plateModel:IsA("Model") then
                 return plateModel:GetBoundingBox()
             elseif plateModel:IsA("BasePart") then
                 return plateModel.CFrame, plateModel.Size
             end
+
             return nil, nil
         end)
-        if ok and boxCFrame and boxSize then
-            -- Per-plate, bukan bounding box seluruh PressurePlates.
-            ScanBox(boxCFrame, boxSize + Vector3.new(8, 12, 8))
+
+        if ok and cf and size then
+            return cf, size
         end
 
-        -- 3) Jika plateModel terdiri dari beberapa BasePart, scan tiap part.
-        -- Ini mengatasi model plate yang bounding box-nya tidak merepresentasikan
-        -- area pijakan sebenarnya.
-        local descendants = plateModel:GetDescendants()
-        for _, obj in ipairs(descendants) do
-            if obj:IsA("BasePart") then
-                ScanBox(obj.CFrame, obj.Size + Vector3.new(6, 8, 6))
+        return nil, nil
+    end
+
+    local function IsPointInsideBox(cframe, size, point, padding)
+        if not cframe or not size or not point then return false end
+
+        padding = padding or Vector3.zero
+
+        local half = (size / 2) + padding
+        local localPos = cframe:PointToObjectSpace(point)
+
+        return math.abs(localPos.X) <= half.X
+            and math.abs(localPos.Y) <= half.Y
+            and math.abs(localPos.Z) <= half.Z
+    end
+
+    local function FindNearestPlayers(plateCFrame, plateSize, limit)
+        if not plateCFrame or not plateSize or limit <= 0 then return end
+
+        local candidates = {}
+
+        for _, player in ipairs(Players:GetPlayers()) do
+            if not seen[player.UserId] then
+                local root = GetCharacterRoot(player)
+
+                if root then
+                    local inside = IsPointInsideBox(
+                        plateCFrame,
+                        plateSize,
+                        root.Position,
+                        Vector3.new(12, 16, 12)
+                    )
+
+                    if inside then
+                        AddPlayer(player)
+                    else
+                        -- Fallback proximity:
+                        -- kalau root tidak tepat berada di box, ukur jaraknya
+                        -- terhadap pusat plate.
+                        local distance = (root.Position - plateCFrame.Position).Magnitude
+
+                        table.insert(candidates, {
+                            player = player,
+                            distance = distance,
+                        })
+                    end
+                end
+            end
+        end
+
+        if #names >= limit then
+            return
+        end
+
+        table.sort(candidates, function(a, b)
+            return a.distance < b.distance
+        end)
+
+        for _, candidate in ipairs(candidates) do
+            if #names >= limit then break end
+            AddPlayer(candidate.player)
+        end
+    end
+
+    local plateInfo = {}
+
+    for _, plateModel in ipairs(plates:GetChildren()) do
+        local cf, size = GetPlateCenterAndSize(plateModel)
+
+        if cf and size then
+            table.insert(plateInfo, {
+                model = plateModel,
+                cframe = cf,
+                size = size,
+            })
+        end
+    end
+
+    local expected = tonumber(plates:GetAttribute("Players")) or 0
+
+    -- Scan utama: posisi player terhadap masing-masing plate.
+    for _, info in ipairs(plateInfo) do
+        if expected > #names then
+            FindNearestPlayers(
+                info.cframe,
+                info.size,
+                expected - #names
+            )
+        end
+    end
+
+    -- Fallback kedua: overlap semua BasePart plate dengan area yang diperbesar.
+    if expected > #names then
+        local params = OverlapParams.new()
+        params.FilterType = Enum.RaycastFilterType.Exclude
+        params.FilterDescendantsInstances = {}
+
+        for _, info in ipairs(plateInfo) do
+            if expected <= #names then break end
+
+            local paddedSize = info.size + Vector3.new(16, 20, 16)
+
+            local ok, hits = pcall(function()
+                return Workspace:GetPartBoundsInBox(
+                    info.cframe,
+                    paddedSize,
+                    params
+                )
+            end)
+
+            if ok and hits then
+                for _, hitPart in ipairs(hits) do
+                    if expected <= #names then break end
+
+                    local current = hitPart
+
+                    for _ = 1, 25 do
+                        if not current then break end
+
+                        local player = Players:GetPlayerFromCharacter(current)
+                        if player then
+                            AddPlayer(player)
+                            break
+                        end
+
+                        current = current.Parent
+                    end
+                end
             end
         end
     end
 
-    -- Count attribute bisa berubah lebih dulu daripada Character/plate replication.
-    -- Karena itu scan ulang beberapa kali.
-    for attempt = 1, 10 do
-        for _, plateModel in ipairs(plates:GetChildren()) do
-            ScanPlate(plateModel)
-        end
+    -- Retry untuk kasus replication/timing.
+    if expected > #names then
+        for _ = 1, 8 do
+            if #names >= expected then break end
 
-        local expected = tonumber(plates:GetAttribute("Players")) or 0
-        if expected > 0 and #names >= expected then break end
-        if attempt < 10 then task.wait(0.20) end
+            task.wait(0.15)
+
+            for _, info in ipairs(plateInfo) do
+                if #names >= expected then break end
+
+                FindNearestPlayers(
+                    info.cframe,
+                    info.size,
+                    expected - #names
+                )
+            end
+        end
     end
 
-    if #names == 0 then return "—" end
+    if #names == 0 then
+        return "—"
+    end
+
     table.sort(names)
     return table.concat(names, ", ")
 end
@@ -2194,7 +2296,7 @@ local function SendElementalBalancerWebhook(isBalanced, fire, frozen, storm)
                     },
                     {
                         name = SEP .. " SERVER",
-                        value = "**BANG ADUL**",
+                        value = "**BANG DUL**",
                         inline = true,
                     },
                 },
