@@ -165,7 +165,7 @@ local SecretFishList = {
     "Colossal Shipwreck Crab", "Astrelle", "Moonwake Ray", "Astralune", "Starglass Guardian",
     "Pelagon", "Crimson Dreadtusk", "Riftborn Arowana", "Stormshell Brute", "Pyrocoil",
     "Wintertusk Mammofin", "Ashen Kingfish", "Tribunal Withering Core", "ELEMENTAL HYDRA", "OVERLORD HYDRA", 
-    "Everbloom", "Mr Money Bags", "Shellshock X", "VeloByte", "Cenobyte.EXE", "GigaByte!", "Jellybeam",
+    "Everbloom", "Mr Money Bags", "Shellshock X", "VeloByte", "Cenobyte.EXE", "GigaByte", "Jellybeam",
 }
 
 local ForgottenList = {
@@ -323,7 +323,7 @@ local FishChanceData = {
     ["VeloByte"]                  = "1 in 5M",
     ["Shellshock X"]              = "1 in 3M",
     ["Cenobyte.EXE"]              = "1 in 25M",
-    ["GigaByte!"]                 = "1 in 4.5M",
+    ["GigaByte"]                 = "1 in 4.5M",
     ["Jellybeam"]                 = "1 in 4M",
 }
 
@@ -331,7 +331,7 @@ local NP = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-M
 
 local FishImageURL = {
     ["Jellybeam"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Jellybeam.png",
-    ["GigaByte!"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/OTW.png",
+    ["GigaByte"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/GigaByte.png",
     ["Cenobyte.EXE"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/IMG_3205.png",
     ["Shellshock X"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/ShellshockX.PNG",
     ["next"]                     = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/NEXT.PNG",
