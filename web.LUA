@@ -334,7 +334,6 @@ local FishImageURL = {
     ["Charybdis"]                = "---",
     ["CharybdisBossEvent"]       = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/CharybdisBossEvent.png",
     ["Jellybeam"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Jellybeam.png",
-    ["CharybdisBossEvent"]       = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/CharybdisBossEvent.png",
     ["GigaByte"]                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/GigaByte.png",
     ["Cenobyte.EXE"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/IMG_3205.png",
     ["Shellshock X"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/ShellshockX.PNG",
@@ -1277,7 +1276,7 @@ local function SendMonitorStartedWebhook(allPlayers, names)
             "Server monitor sudah aktif",
             TierColors.Join,
             {
-                { name = SEP .. " Host Server",  value = "SERVER BANG DUL",                    inline = true },
+                { name = SEP .. " Server",  value = "BANG DUL",                    inline = true },
                 { name = SEP .. " Total Player", value = "**" .. tostring(#allPlayers) .. "** orang", inline = true },
                 { name = SEP .. " Daftar Player", value = "```\n" .. table.concat(names, ", ") .. "```", inline = false },
             }
@@ -1406,9 +1405,16 @@ local function SendEventWebhook(eventData, rawText)
     local eventStartTime = os.time()
     local endTime = eventStartTime + (60 * 60)
 
+    local isCharybdis = (eventData.title == "🌪️ Charybdis Boss Dimulai!")
+    local contentText = nil
+    if isCharybdis then
+        contentText = "AYO SIKAT GENGZzZz <@&" .. ROLE_NELAYAN_ID .. ">"
+    end
+
     PostWebhook(url, {
         username   = "M B G Event",
         avatar_url = WEBHOOK_AVATAR,
+        content    = contentText,
         embeds     = { BuildEmbed(
             eventData.title,
             eventData.description,
@@ -1983,7 +1989,7 @@ end
 --  lalu mengirim webhook saat status BALANCE/UNBALANCED berubah.
 -- ============================================================
 
-local BALANCE_CHECK_INTERVAL = 15
+local BALANCE_CHECK_INTERVAL = 107
 local _lastBalanceState = nil
 
 local function GetCountersFolder()
