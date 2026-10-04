@@ -18,6 +18,7 @@ local WEBHOOK_FISH               = ""
 local WEBHOOK_EVENT              = ""
 local WEBHOOK_MUTASI             = ""
 local WEBHOOK_CHECKPLAYER        = ""
+local WEBHOOK_BALANCER           = ""
 local WEBHOOK_AVATAR             = ""
 local SCRIPT_ACTIVE              = false
 local MONITOR_SESSION            = 0
@@ -582,7 +583,7 @@ local AFK_CHECK_INTERVAL     = 60   -- interval scan pengecekan idle (detik)
 
 local CONFIG_FILE = "bloxgank_config.json"
 
-local function SaveConfig(joinUrl, fishUrl, statsUrl, eventUrl, mutasiUrl, checkplayerUrl)
+local function SaveConfig(joinUrl, fishUrl, statsUrl, eventUrl, mutasiUrl, checkplayerUrl, balancerUrl)
     if not writefile then return end
     pcall(function()
         writefile(CONFIG_FILE, HttpService:JSONEncode({
@@ -592,6 +593,7 @@ local function SaveConfig(joinUrl, fishUrl, statsUrl, eventUrl, mutasiUrl, check
             webhook_event       = eventUrl       or "",
             webhook_mutasi      = mutasiUrl      or "",
             webhook_checkplayer = checkplayerUrl or "",
+            webhook_balancer    = balancerUrl or "",
         }))
     end)
 end
@@ -1958,6 +1960,235 @@ local function HookChat()
 end
 
 -- ============================================================
+--  ELEMENTAL BALANCER MONITOR
+--  Membaca Counters > Fire/Frozen/Storm > PressurePlates
+--  lalu mengirim webhook saat status BALANCE/UNBALANCED berubah.
+-- ============================================================
+
+local BALANCE_CHECK_INTERVAL = 3
+local _lastBalanceState = nil
+
+local function GetCountersFolder()
+    local islands = Workspace:FindFirstChild("Islands")
+    if not islands then return nil end
+
+    local throneRoom = islands:FindFirstChild("Throne Room")
+    if not throneRoom then return nil end
+
+    local throneFishing = throneRoom:FindFirstChild("ThroneRoomFishing")
+    if not throneFishing then return nil end
+
+    return throneFishing:FindFirstChild("Counters")
+end
+
+local function GetElementCounts()
+    local counters = GetCountersFolder()
+    if not counters then
+        return nil
+    end
+
+    local counts = {}
+
+    for _, element in ipairs({"Fire", "Frozen", "Storm"}) do
+        local folder = counters:FindFirstChild(element)
+        local plates = folder and folder:FindFirstChild("PressurePlates")
+
+        if plates then
+            counts[element] = tonumber(plates:GetAttribute("Players")) or 0
+        else
+            counts[element] = 0
+        end
+    end
+
+    return counts
+end
+
+local function GetElementPlayerNames(element)
+    local counters = GetCountersFolder()
+    if not counters then return "—" end
+
+    local folder = counters:FindFirstChild(element)
+    local plates = folder and folder:FindFirstChild("PressurePlates")
+    if not plates then return "—" end
+
+    local names = {}
+    local seen = {}
+
+    -- Ambil player dari part/character yang berdiri di area PressurePlates.
+    local ok, boxCFrame, boxSize = pcall(function()
+        return plates:GetBoundingBox()
+    end)
+
+    if ok and boxCFrame and boxSize then
+        local overlapParams = OverlapParams.new()
+        overlapParams.FilterType = Enum.RaycastFilterType.Exclude
+        overlapParams.FilterDescendantsInstances = {}
+
+        local okHits, hits = pcall(function()
+            return Workspace:GetPartBoundsInBox(
+                boxCFrame,
+                boxSize + Vector3.new(6, 10, 6),
+                overlapParams
+            )
+        end)
+
+        if okHits and hits then
+            for _, hitPart in ipairs(hits) do
+                local character = hitPart.Parent
+                local player = character and Players:GetPlayerFromCharacter(character)
+
+                if player and not seen[player.UserId] then
+                    seen[player.UserId] = true
+                    table.insert(names, player.DisplayName)
+                end
+            end
+        end
+    end
+
+    if #names == 0 then
+        return "—"
+    end
+
+    table.sort(names)
+    return table.concat(names, ", ")
+end
+
+local function SendElementalBalancerWebhook(isBalanced, fire, frozen, storm)
+    local url = (WEBHOOK_BALANCER ~= "" and WEBHOOK_BALANCER)
+        or ((WEBHOOK_EVENT ~= "") and WEBHOOK_EVENT or WEBHOOK_URL)
+
+    if url == "" then
+        warn("[BALANCER] Tidak ada webhook. Isi Webhook Elemental Balancer atau Webhook Event.")
+        return
+    end
+
+    local stateText
+    local title
+    local color
+
+    if isBalanced then
+        stateText = "BALANCE"
+        title = EMOJI_THUNDER .. " Elemental Balancer — BALANCE!"
+        color = 65280
+    else
+        stateText = "TIDAK SEIMBANG"
+        title = EMOJI_THUNDER .. " Elemental Balancer — 🚫 TIDAK SEIMBANG 🚫 "
+        color = 16711680
+    end
+
+    local formation = tostring(fire) .. "-" .. tostring(frozen) .. "-" .. tostring(storm)
+
+    print(
+        "[BALANCER] WEBHOOK -> "
+        .. stateText
+        .. " | Formasi "
+        .. formation
+    )
+
+    PostWebhook(url, {
+        username = "M B G Elemental Balancer",
+        avatar_url = WEBHOOK_AVATAR,
+        embeds = {
+            BuildEmbed(
+                title,
+                "Status Elemental Balancer berubah.",
+                color,
+                {
+                    {
+                        name = SEP .. " Fire",
+                        value = "**" .. tostring(fire) .. "** player (" .. GetElementPlayerNames("Fire") .. ")",
+                        inline = true,
+                    },
+                    {
+                        name = SEP .. " Frozen",
+                        value = "**" .. tostring(frozen) .. "** player (" .. GetElementPlayerNames("Frozen") .. ")",
+                        inline = true,
+                    },
+                    {
+                        name = SEP .. " Storm",
+                        value = "**" .. tostring(storm) .. "** player (" .. GetElementPlayerNames("Storm") .. ")",
+                        inline = true,
+                    },
+                    {
+                        name = SEP .. " Formasi",
+                        value = "**" .. formation .. "**",
+                        inline = true,
+                    },
+                    {
+                        name = SEP .. " Status",
+                        value = "**" .. stateText .. "**",
+                        inline = true,
+                    },
+                    {
+                        name = SEP .. " Host",
+                        value = "**" .. tostring(Players.LocalPlayer and Players.LocalPlayer.DisplayName or "Unknown") .. "**",
+                        inline = true,
+                    },
+                },
+                nil,
+                GetFishImageURL("OVERLORD HYDRA"),
+                "M B G Elemental Balancer",
+                nil,
+                false
+            ),
+        },
+    })
+end
+
+local function StartElementalBalancerMonitor()
+    task.spawn(function()
+        while SCRIPT_ACTIVE do
+            task.wait(BALANCE_CHECK_INTERVAL)
+
+            if not SCRIPT_ACTIVE then
+                break
+            end
+
+            local counts = GetElementCounts()
+
+            if counts then
+                local fire = counts.Fire or 0
+                local frozen = counts.Frozen or 0
+                local storm = counts.Storm or 0
+                local total = fire + frozen + storm
+
+                -- Jangan kirim status kosong 0-0-0.
+                if total > 0 then
+                    local isBalanced =
+                        fire > 0
+                        and fire == frozen
+                        and frozen == storm
+
+                    local stateNow = isBalanced and "balanced" or "unbalanced"
+
+                    print(
+                        "[BALANCER] Fire="
+                        .. tostring(fire)
+                        .. " Frozen="
+                        .. tostring(frozen)
+                        .. " Storm="
+                        .. tostring(storm)
+                        .. " -> "
+                        .. stateNow
+                    )
+
+                    -- Kirim hanya saat kondisi berubah.
+                    if stateNow ~= _lastBalanceState then
+                        _lastBalanceState = stateNow
+                        SendElementalBalancerWebhook(
+                            isBalanced,
+                            fire,
+                            frozen,
+                            storm
+                        )
+                    end
+                end
+            end
+        end
+    end)
+end
+
+-- ============================================================
 --  START MONITORING
 -- ============================================================
 
@@ -1972,6 +2203,7 @@ local function StartMonitoring()
 
     HookChat()
     StartEventMonitor()
+    StartElementalBalancerMonitor()
     StartAfkMonitor() -- mulai loop deteksi idle/gak mancing (1 jam tanpa catch)
 
     -- NOTE: webhook "Check Player On Server" cuma kekirim kalau di-trigger manual
@@ -2369,6 +2601,8 @@ local function CreateUI()
     local inputStats = MakeInput("Paste webhook stats...")
     MakeLabel("🎯 Webhook Event Hunt (Role Nelayan)")
     local inputEvent = MakeInput("Kosong = pakai webhook join/leave...")
+    MakeLabel("⚖️ Webhook Elemental Balancer")
+    local inputBalancer = MakeInput("Kosong = pakai webhook event...")
     MakeLabel("🧬 Webhook Mutasi List")
     local inputMutasi = MakeInput("Kosong = pakai webhook secret fish...")
     MakeLabel(EMOJI_CHECK .. " Webhook Check Player")
@@ -2390,6 +2624,7 @@ local function CreateUI()
         if savedConfig.webhook_fish        and savedConfig.webhook_fish        ~= "" then inputFish.Text        = savedConfig.webhook_fish        end
         if savedConfig.webhook_stats       and savedConfig.webhook_stats       ~= "" then inputStats.Text       = savedConfig.webhook_stats       end
         if savedConfig.webhook_event       and savedConfig.webhook_event       ~= "" then inputEvent.Text       = savedConfig.webhook_event       end
+        if savedConfig.webhook_balancer    and savedConfig.webhook_balancer    ~= "" then inputBalancer.Text    = savedConfig.webhook_balancer    end
         if savedConfig.webhook_mutasi      and savedConfig.webhook_mutasi      ~= "" then inputMutasi.Text      = savedConfig.webhook_mutasi      end
         if savedConfig.webhook_checkplayer and savedConfig.webhook_checkplayer ~= "" then inputCheckplayer.Text = savedConfig.webhook_checkplayer end
         saveToggle.setState(true)
@@ -2449,10 +2684,11 @@ local function CreateUI()
         if inputFish.Text:find("discord.com/api/webhooks")        then WEBHOOK_FISH        = inputFish.Text        end
         if inputStats.Text:find("discord.com/api/webhooks")       then WEBHOOK_STATS       = inputStats.Text       end
         if inputEvent.Text:find("discord.com/api/webhooks")       then WEBHOOK_EVENT       = inputEvent.Text       end
+        if inputBalancer.Text:find("discord.com/api/webhooks")    then WEBHOOK_BALANCER    = inputBalancer.Text    end
         if inputMutasi.Text:find("discord.com/api/webhooks")      then WEBHOOK_MUTASI      = inputMutasi.Text      end
         if inputCheckplayer.Text:find("discord.com/api/webhooks") then WEBHOOK_CHECKPLAYER = inputCheckplayer.Text end
 
-        if saveEnabled then SaveConfig(WEBHOOK_URL, WEBHOOK_FISH, WEBHOOK_STATS, WEBHOOK_EVENT, WEBHOOK_MUTASI, WEBHOOK_CHECKPLAYER) end
+        if saveEnabled then SaveConfig(WEBHOOK_URL, WEBHOOK_FISH, WEBHOOK_STATS, WEBHOOK_EVENT, WEBHOOK_MUTASI, WEBHOOK_CHECKPLAYER, WEBHOOK_BALANCER) end
 
         MONITOR_SESSION = MONITOR_SESSION + 1
         SCRIPT_ACTIVE = true
@@ -2464,7 +2700,7 @@ local function CreateUI()
 
         SetFloatStatus(true)
 
-        for _, box in ipairs({ inputJoin, inputFish, inputStats, inputEvent, inputMutasi, inputCheckplayer }) do
+        for _, box in ipairs({ inputJoin, inputFish, inputStats, inputEvent, inputBalancer, inputMutasi, inputCheckplayer }) do
             box.TextEditable = false
         end
         saveToggle.hitbox.Active = false
