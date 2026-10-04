@@ -2017,10 +2017,13 @@ local function GetElementPlayerNames(element)
     local seen = {}
 
     local function AddPlayer(player)
-        if player and not seen[player.UserId] then
-            seen[player.UserId] = true
-            table.insert(names, player.DisplayName)
+        if not player or seen[player.UserId] then return end
+        seen[player.UserId] = true
+        local displayName = tostring(player.DisplayName or "")
+        if displayName == "" then
+            displayName = tostring(player.Name or "Unknown")
         end
+        table.insert(names, displayName)
     end
 
     local function GetPlateBox(plateModel)
@@ -2075,7 +2078,7 @@ local function GetElementPlayerNames(element)
         if okHits and hits then
             for _, hitPart in ipairs(hits) do
                 local current = hitPart
-                for _ = 1, 8 do
+                for _ = 1, 12 do
                     if not current then break end
                     local player = Players:GetPlayerFromCharacter(current)
                     if player then
