@@ -106,9 +106,9 @@ local MemberList = {
     { username = "Cherryy0_0i",      display = "viii",                 id = "1454391668793938013" },
     { username = "Rens_1395",        display = "Rens",                 id = "1465026039666184263" },
     { username = "sumeringa",        display = "sumeringa",            id = "697060056163942430" },
+    { username = "NolanMcatee",      display = "NolanMKC",             id = "1554445890142478399" },
     { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
-
-
+    { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
 
 
 }
@@ -2068,11 +2068,11 @@ local function SendElementalBalancerWebhook(isBalanced, fire, frozen, storm)
 
     if isBalanced then
         stateText = "BALANCE"
-        title = EMOJI_THUNDER .. " Elemental Balancer — BALANCE!"
+        title = EMOJI_THUNDER .. " Elemental Balance !"
         color = 65280
     else
         stateText = "TIDAK SEIMBANG"
-        title = EMOJI_THUNDER .. " Elemental Balancer — 🚫 TIDAK SEIMBANG 🚫 "
+        title = EMOJI_THUNDER .. " Elemental 🚫 TIDAK SEIMBANG 🚫 "
         color = 16711680
     end
 
