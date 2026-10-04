@@ -2016,34 +2016,92 @@ local function GetElementPlayerNames(element)
     local names = {}
     local seen = {}
 
-    -- Ambil player dari part/character yang berdiri di area PressurePlates.
-    local ok, boxCFrame, boxSize = pcall(function()
-        return plates:GetBoundingBox()
-    end)
+    local function AddPlayer(player)
+        if player and not seen[player.UserId] then
+            seen[player.UserId] = true
+            table.insert(names, player.DisplayName)
+        end
+    end
 
-    if ok and boxCFrame and boxSize then
+    local function GetPlateBox(plateModel)
+        local ok, boxCFrame, boxSize = pcall(function()
+            if plateModel:IsA("Model") then
+                return plateModel:GetBoundingBox()
+            elseif plateModel:IsA("BasePart") then
+                return plateModel.CFrame, plateModel.Size
+            end
+            return nil, nil
+        end)
+
+        if ok and boxCFrame and boxSize then
+            return boxCFrame, boxSize + Vector3.new(6, 10, 6)
+        end
+        return nil, nil
+    end
+
+    local function ScanPlate(plateModel)
+        local boxCFrame, boxSize = GetPlateBox(plateModel)
+        if not boxCFrame or not boxSize then return end
+
+        -- Cara utama: cek posisi HumanoidRootPart setiap player terhadap
+        -- bounding box plate. Ini lebih stabil daripada hanya mengandalkan
+        -- part overlap, karena Character kadang belum punya part yang cocok
+        -- saat attribute Players sudah lebih dulu berubah.
+        local half = boxSize / 2
+        for _, player in ipairs(Players:GetPlayers()) do
+            local character = player.Character
+            local root = character and character:FindFirstChild("HumanoidRootPart")
+
+            if root then
+                local localPos = boxCFrame:PointToObjectSpace(root.Position)
+                if math.abs(localPos.X) <= half.X
+                    and math.abs(localPos.Y) <= half.Y
+                    and math.abs(localPos.Z) <= half.Z then
+                    AddPlayer(player)
+                end
+            end
+        end
+
+        -- Fallback: tetap lakukan overlap scan untuk kasus root position
+        -- sedikit di luar box tetapi bagian Character masih menyentuh plate.
         local overlapParams = OverlapParams.new()
         overlapParams.FilterType = Enum.RaycastFilterType.Exclude
         overlapParams.FilterDescendantsInstances = {}
 
         local okHits, hits = pcall(function()
-            return Workspace:GetPartBoundsInBox(
-                boxCFrame,
-                boxSize + Vector3.new(6, 10, 6),
-                overlapParams
-            )
+            return Workspace:GetPartBoundsInBox(boxCFrame, boxSize, overlapParams)
         end)
 
         if okHits and hits then
             for _, hitPart in ipairs(hits) do
-                local character = hitPart.Parent
-                local player = character and Players:GetPlayerFromCharacter(character)
-
-                if player and not seen[player.UserId] then
-                    seen[player.UserId] = true
-                    table.insert(names, player.DisplayName)
+                local current = hitPart
+                for _ = 1, 8 do
+                    if not current then break end
+                    local player = Players:GetPlayerFromCharacter(current)
+                    if player then
+                        AddPlayer(player)
+                        break
+                    end
+                    current = current.Parent
                 end
             end
+        end
+    end
+
+    -- Ambil ulang children setiap attempt supaya plate yang baru dibuat/
+    -- direplikasi setelah perubahan count ikut terbaca.
+    for attempt = 1, 6 do
+        for _, plateModel in ipairs(plates:GetChildren()) do
+            ScanPlate(plateModel)
+        end
+
+        local expected = tonumber(plates:GetAttribute("Players")) or 0
+        if expected > 0 and #names >= expected then
+            break
+        end
+
+        if attempt < 6 then
+            task.wait(0.20)
         end
     end
 
@@ -2122,8 +2180,8 @@ local function SendElementalBalancerWebhook(isBalanced, fire, frozen, storm)
                         inline = true,
                     },
                     {
-                        name = SEP .. " Host",
-                        value = "**" .. tostring(Players.LocalPlayer and Players.LocalPlayer.DisplayName or "Unknown") .. "**",
+                        name = SEP .. " SERVER",
+                        value = "**BANG ADUL**",
                         inline = true,
                     },
                 },
