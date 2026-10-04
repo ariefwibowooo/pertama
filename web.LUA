@@ -177,7 +177,7 @@ local ForgottenList = {
 local MutasiList = {
     "Noob", "Fairy Dust", "Holographic", "Gemstone", "Fire", "Color Burn",
     "BloodMoon", "Binary", "Lightning", "Disco", "Festive", "Radioactive",
-    "Moon Fragment", "Abyssal", "Cosmic", "Equinox", "Glitch", "Solar", "8-Bit",
+    "Moon Fragment", "Abyssal", "Cosmic", "Equinox", "Glitch", "Solar", "8-Bit", "Invasion",
     -- FIX 6: Aurora & Midnight itu mutasi beneran (sama kayak Abyssal), makanya harus tetap ada di sini.
     -- Masalahnya BUKAN di list ini, tapi di cara deteksi prefix-nya -- lihat MutasiFalsePositiveSpecies di bawah.
     "Aurora", "Midnight", "Elemental",
@@ -323,14 +323,14 @@ local FishChanceData = {
     ["VeloByte"]                  = "1 in 5M",
     ["Shellshock X"]              = "1 in 3M",
     ["Cenobyte.EXE"]              = "1 in 25M",
-    ["GigaByte!"]                 = "1 in ??",
-    ["Jellybeam"]                 = "1 in ??",
+    ["GigaByte!"]                 = "1 in 4.5M",
+    ["Jellybeam"]                 = "1 in 4M",
 }
 
 local NP = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main"
 
 local FishImageURL = {
-    ["Jellybeam"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/OTW.png",
+    ["Jellybeam"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Jellybeam.png",
     ["GigaByte!"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/OTW.png",
     ["Cenobyte.EXE"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/IMG_3205.png",
     ["Shellshock X"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/ShellshockX.PNG",
