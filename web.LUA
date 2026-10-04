@@ -1420,7 +1420,7 @@ local function SendEventWebhook(eventData, rawText)
             eventData.description,
             eventData.color,
             {
-                { name = SEP .. " Host Server",  value = "SERVER BANG DUL",              inline = true },
+                { name = SEP .. " Server",  value = "BANG DUL",              inline = true },
                 { name = SEP .. " Total Player", value = "**" .. tostring(#Players:GetPlayers()) .. "** orang", inline = true },
                 { name = SEP .. " Berakhir Pada", value = "<t:" .. tostring(endTime) .. ":R>", inline = true },
             },
