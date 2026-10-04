@@ -1983,7 +1983,7 @@ end
 --  lalu mengirim webhook saat status BALANCE/UNBALANCED berubah.
 -- ============================================================
 
-local BALANCE_CHECK_INTERVAL = 3
+local BALANCE_CHECK_INTERVAL = 15
 local _lastBalanceState = nil
 
 local function GetCountersFolder()
