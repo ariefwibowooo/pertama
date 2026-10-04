@@ -2145,7 +2145,7 @@ local function SendElementalBalancerWebhook(isBalanced, fire, frozen, storm)
         color = 65280
     else
         stateText = "TIDAK SEIMBANG"
-        title = EMOJI_THUNDER .. " Elemental 🚫 TIDAK SEIMBANG 🚫 "
+        title = EMOJI_THUNDER .. " 🚫 TIDAK SEIMBANG 🚫 "
         color = 16711680
     end
 
