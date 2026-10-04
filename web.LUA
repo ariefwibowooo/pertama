@@ -2020,13 +2020,55 @@ local function GetElementPlayerNames(element)
         if not player or seen[player.UserId] then return end
         seen[player.UserId] = true
         local displayName = tostring(player.DisplayName or "")
-        if displayName == "" then
-            displayName = tostring(player.Name or "Unknown")
-        end
+        if displayName == "" then displayName = tostring(player.Name or "Unknown") end
         table.insert(names, displayName)
     end
 
-    local function GetPlateBox(plateModel)
+    local function PlayerFromPart(part)
+        local current = part
+        for _ = 1, 20 do
+            if not current then break end
+            local player = Players:GetPlayerFromCharacter(current)
+            if player then return player end
+            current = current.Parent
+        end
+        return nil
+    end
+
+    local function ScanBox(cframe, size)
+        if not cframe or not size then return end
+
+        -- 1) Root position: tetap bisa menemukan player walau hanya satu
+        -- bagian Character yang berada tepat di atas plate.
+        local half = size / 2
+        for _, player in ipairs(Players:GetPlayers()) do
+            local character = player.Character
+            local root = character and character:FindFirstChild("HumanoidRootPart")
+            if root then
+                local lp = cframe:PointToObjectSpace(root.Position)
+                if math.abs(lp.X) <= half.X
+                    and math.abs(lp.Y) <= half.Y
+                    and math.abs(lp.Z) <= half.Z then
+                    AddPlayer(player)
+                end
+            end
+        end
+
+        -- 2) Semua part Character yang menyentuh area plate.
+        local params = OverlapParams.new()
+        params.FilterType = Enum.RaycastFilterType.Exclude
+        params.FilterDescendantsInstances = {}
+        local ok, hits = pcall(function()
+            return Workspace:GetPartBoundsInBox(cframe, size, params)
+        end)
+        if ok and hits then
+            for _, part in ipairs(hits) do
+                AddPlayer(PlayerFromPart(part))
+            end
+        end
+    end
+
+    local function ScanPlate(plateModel)
         local ok, boxCFrame, boxSize = pcall(function()
             if plateModel:IsA("Model") then
                 return plateModel:GetBoundingBox()
@@ -2035,83 +2077,35 @@ local function GetElementPlayerNames(element)
             end
             return nil, nil
         end)
-
         if ok and boxCFrame and boxSize then
-            return boxCFrame, boxSize + Vector3.new(6, 10, 6)
-        end
-        return nil, nil
-    end
-
-    local function ScanPlate(plateModel)
-        local boxCFrame, boxSize = GetPlateBox(plateModel)
-        if not boxCFrame or not boxSize then return end
-
-        -- Cara utama: cek posisi HumanoidRootPart setiap player terhadap
-        -- bounding box plate. Ini lebih stabil daripada hanya mengandalkan
-        -- part overlap, karena Character kadang belum punya part yang cocok
-        -- saat attribute Players sudah lebih dulu berubah.
-        local half = boxSize / 2
-        for _, player in ipairs(Players:GetPlayers()) do
-            local character = player.Character
-            local root = character and character:FindFirstChild("HumanoidRootPart")
-
-            if root then
-                local localPos = boxCFrame:PointToObjectSpace(root.Position)
-                if math.abs(localPos.X) <= half.X
-                    and math.abs(localPos.Y) <= half.Y
-                    and math.abs(localPos.Z) <= half.Z then
-                    AddPlayer(player)
-                end
-            end
+            -- Per-plate, bukan bounding box seluruh PressurePlates.
+            ScanBox(boxCFrame, boxSize + Vector3.new(8, 12, 8))
         end
 
-        -- Fallback: tetap lakukan overlap scan untuk kasus root position
-        -- sedikit di luar box tetapi bagian Character masih menyentuh plate.
-        local overlapParams = OverlapParams.new()
-        overlapParams.FilterType = Enum.RaycastFilterType.Exclude
-        overlapParams.FilterDescendantsInstances = {}
-
-        local okHits, hits = pcall(function()
-            return Workspace:GetPartBoundsInBox(boxCFrame, boxSize, overlapParams)
-        end)
-
-        if okHits and hits then
-            for _, hitPart in ipairs(hits) do
-                local current = hitPart
-                for _ = 1, 12 do
-                    if not current then break end
-                    local player = Players:GetPlayerFromCharacter(current)
-                    if player then
-                        AddPlayer(player)
-                        break
-                    end
-                    current = current.Parent
-                end
+        -- 3) Jika plateModel terdiri dari beberapa BasePart, scan tiap part.
+        -- Ini mengatasi model plate yang bounding box-nya tidak merepresentasikan
+        -- area pijakan sebenarnya.
+        local descendants = plateModel:GetDescendants()
+        for _, obj in ipairs(descendants) do
+            if obj:IsA("BasePart") then
+                ScanBox(obj.CFrame, obj.Size + Vector3.new(6, 8, 6))
             end
         end
     end
 
-    -- Ambil ulang children setiap attempt supaya plate yang baru dibuat/
-    -- direplikasi setelah perubahan count ikut terbaca.
-    for attempt = 1, 6 do
+    -- Count attribute bisa berubah lebih dulu daripada Character/plate replication.
+    -- Karena itu scan ulang beberapa kali.
+    for attempt = 1, 10 do
         for _, plateModel in ipairs(plates:GetChildren()) do
             ScanPlate(plateModel)
         end
 
         local expected = tonumber(plates:GetAttribute("Players")) or 0
-        if expected > 0 and #names >= expected then
-            break
-        end
-
-        if attempt < 6 then
-            task.wait(0.20)
-        end
+        if expected > 0 and #names >= expected then break end
+        if attempt < 10 then task.wait(0.20) end
     end
 
-    if #names == 0 then
-        return "—"
-    end
-
+    if #names == 0 then return "—" end
     table.sort(names)
     return table.concat(names, ", ")
 end
