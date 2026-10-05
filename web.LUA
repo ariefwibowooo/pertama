@@ -322,6 +322,35 @@ local function GetAutoEntry(baseName)
     return AutoFishDBLower[NormalizeName(baseName)]
 end
 
+-- ============================================================
+-- PERFORMANCE CACHE
+-- Precompute lookup Secret/Forgotten + auto Fish Tier 7/8.
+-- Cache hasil deteksi nama ikan agar deteksi berulang tidak
+-- perlu scan list/database dari awal lagi.
+-- ============================================================
+local ManualSecretByLower = {}
+local ManualForgottenByLower = {}
+local AutoSecretForgottenDBLower = {}
+local FishDetectionCache = {}
+
+for _, name in ipairs(SecretFishList) do
+    local lower = NormalizeName(name)
+    ManualSecretByLower[lower] = name
+end
+
+for _, name in ipairs(ForgottenList) do
+    ManualForgottenByLower[NormalizeName(name)] = true
+end
+
+for dbLower, entry in pairs(AutoFishDBLower) do
+    if tostring(entry.Type) == "Fish" then
+        local tier = tonumber(entry.Tier)
+        if tier == 7 or tier == 8 then
+            AutoSecretForgottenDBLower[dbLower] = entry
+        end
+    end
+end
+
 local function FormatChanceFromProbability(chance)
     chance = tonumber(chance)
     if not chance or chance <= 0 then return nil end
@@ -396,23 +425,11 @@ local function GetFishImageURL(baseName)
 end
 
 local function IsManualSecret(baseName)
-    local lower = NormalizeName(baseName)
-    for _, name in ipairs(SecretFishList) do
-        if NormalizeName(name) == lower then
-            return true
-        end
-    end
-    return false
+    return ManualSecretByLower[NormalizeName(baseName)] ~= nil
 end
 
 local function IsManualForgotten(baseName)
-    local lower = NormalizeName(baseName)
-    for _, name in ipairs(ForgottenList) do
-        if NormalizeName(name) == lower then
-            return true
-        end
-    end
-    return false
+    return ManualForgottenByLower[NormalizeName(baseName)] == true
 end
 
 -- Auto classification hanya untuk FISH Tier 7/8.
@@ -726,19 +743,23 @@ end
 
 local function FindSecretFish(fishName)
     local lower = NormalizeName(fishName)
+    if lower == "" then return nil, nil end
 
-    -- GHOST WORM FISH EXCEPTION:
-    -- "Ghost Worm Fish" = Worm Fish dengan mutasi Ghost.
-    -- "Ghost Worm" tetap diproses normal sebagai Secret Fish.
+    local cached = FishDetectionCache[lower]
+    if cached then
+        return cached.baseName, cached.mutasi
+    end
+
+    -- GHOST WORM FISH EXCEPTION harus didahulukan dari list manual.
     if lower:match("^ghost%s+worm%s+fish$") then
+        FishDetectionCache[lower] = { baseName = "Worm Fish", mutasi = "Ghost" }
         return "Worm Fish", "Ghost"
     end
 
-    -- 1) SECRET MANUAL SELALU BERLAKU, termasuk Secret Tier 6.
-    -- Jadi King Crab / Panther Eel / Hacker Shark tetap terdeteksi walaupun Tier 6.
     local bestBase, bestLen, bestMutasi = nil, 0, nil
-    for _, baseName in ipairs(SecretFishList) do
-        local baseLower = NormalizeName(baseName)
+
+    -- 1) SECRET MANUAL: termasuk Secret Tier 6.
+    for baseLower, baseName in pairs(ManualSecretByLower) do
         local s = string.find(lower, baseLower, 1, true)
         if s then
             local beforeOk = (s == 1) or lower:sub(s - 1, s - 1) == " "
@@ -755,31 +776,28 @@ local function FindSecretFish(fishName)
         end
     end
 
-    if bestBase then
-        return bestBase, bestMutasi
-    end
-
-    -- 2) AUTO ONLY: Fish Tier 7 = Secret, Fish Tier 8 = Forgotten.
-    -- Tier 6 yang tidak ada di SecretFishList TIDAK ikut terdeteksi.
-    -- Non-Fish Tier 7/8 juga TIDAK ikut terdeteksi.
-    for dbLower, entry in pairs(AutoFishDBLower) do
-        if (IsAutoSecret(entry.Name) or IsAutoForgotten(entry.Name)) then
-            local s = string.find(lower, dbLower, 1, true)
-            if s then
-                local beforeOk = (s == 1) or lower:sub(s - 1, s - 1) == " "
-                local afterPos = s + #dbLower
-                local afterOk = (afterPos > #lower) or lower:sub(afterPos, afterPos) == " "
-                if beforeOk and afterOk and #dbLower > bestLen then
-                    local mutasi
-                    if s > 1 then
-                        mutasi = fishName:sub(1, s - 1):match("^%s*(.-)%s*$")
-                        if mutasi == "" then mutasi = nil end
-                    end
-                    bestBase, bestLen, bestMutasi = entry.Name, #dbLower, mutasi
+    -- 2) AUTO: hanya Fish Tier 7 = Secret / Fish Tier 8 = Forgotten.
+    for dbLower, entry in pairs(AutoSecretForgottenDBLower) do
+        local s = string.find(lower, dbLower, 1, true)
+        if s then
+            local beforeOk = (s == 1) or lower:sub(s - 1, s - 1) == " "
+            local afterPos = s + #dbLower
+            local afterOk = (afterPos > #lower) or lower:sub(afterPos, afterPos) == " "
+            if beforeOk and afterOk and #dbLower > bestLen then
+                local mutasi
+                if s > 1 then
+                    mutasi = fishName:sub(1, s - 1):match("^%s*(.-)%s*$")
+                    if mutasi == "" then mutasi = nil end
                 end
+                bestBase, bestLen, bestMutasi = entry.Name, #dbLower, mutasi
             end
         end
     end
+
+    FishDetectionCache[lower] = {
+        baseName = bestBase,
+        mutasi = bestMutasi
+    }
 
     return bestBase, bestMutasi
 end
