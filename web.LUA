@@ -141,46 +141,13 @@ end
 --  DATABASE
 -- ============================================================
 
-local SecretFishList = {
-    "Crystal Crab", "Orca", "Zombie Shark", "Zombie Megalodon", "Dead Zombie Shark",
-    "Blob Shark", "Ghost Shark", "Skeleton Narwhal", "Ghost Worm Fish", "Worm Fish",
-    "Megalodon", "1x1x1x1 Comet Shark", "Bloodmoon Whale", "Lochness Monster",
-    "Monster Shark", "Eerie Shark", "Great Whale", "Frostborn Shark", "Thin Armor Shark",
-    "Scare", "Queen Crab", "King Crab", "Cryoshade Glider", "Panther Eel",
-    "Giant Squid", "Depthseeker Ray", "Robot Kraken", "Mosasaur Shark", "King Jelly",
-    "Bone Whale", "Elshark Gran Maja", "Elpirate Gran Maja", "Ancient Whale",
-    "Gladiator Shark", "Ancient Lochness Monster", "Talon Serpent", "Hacker Shark",
-    "ElRetro Gran Maja", "Strawberry Choc Megalodon", "Krampus Shark",
-    "Emerald Winter Whale", "Winter Frost Shark", "Icebreaker Whale", "Leviathan",
-    "Pirate Megalodon", "Viridis Lurker", "Cursed Kraken", "Ancient Magma Whale",
-    "Rainbow Comet Shark", "Love Nessie", "Broken Heart Nessie",
-    "Mutant Runic Koi", "Ketupat Whale", "Cosmic Mutant Shark", "Strawberry Orca",
-    "Bonemaw Tyrant", "Deepsea Monster Axolotl", "Blocky Lochness Monster", "Aurelion",
-    "Runic Enchant Stone", "Frogalloon", "Coral Whale", "Flame Tyrant", "Withering Core",
-    "Sea Eater", "Thunderzilla", "Iridesca", "Frostbite Leviathan", "Fluorivane",
-    "Cerulean Dragon", "Machodon", "Scorching Veinmaw", "Crystalline Behemoth",
-    "Frostmoon Whale", "Crystal Goliath", "Eggy Enchant Stone", "Dark Megalodon",
-    "Elemental Tempestray", "Glacial Serpent", "Caustic Maw", "Coral Reaper",
-    "Sunken Hadalith", "Trench Warden", "Caeruleum Razerback", "Two-headed shark", "Ragnarex",
-    "Colossal Shipwreck Crab", "Astrelle", "Moonwake Ray", "Astralune", "Starglass Guardian",
-    "Pelagon", "Crimson Dreadtusk", "Riftborn Arowana", "Stormshell Brute", "Pyrocoil",
-    "Wintertusk Mammofin", "Ashen Kingfish", "Tribunal Withering Core", "ELEMENTAL HYDRA", "OVERLORD HYDRA", 
-    "Everbloom", "Mr Money Bags", "Shellshock X", "VeloByte", "Cenobyte.EXE", "GigaByte", "Jellybeam", "Charybdis",
-}
-
-local ForgottenList = {
-    "ELEMENTAL HYDRA", "OVERLORD HYDRA", "Iridesca", "Frostbite Leviathan", "Fluorivane",
-    "Cerulean Dragon", "Crystalline Behemoth", "Trench Warden", "Ragnarex",
-    "Astralune", "Crimson Dreadtusk", "Sea Eater", "Thunderzilla", "Everbloom", "Cenobyte.EXE",
-}
-
-local MutasiList = {
+  local MutasiFallbackList = {
     "Noob", "Fairy Dust", "Holographic", "Gemstone", "Fire", "Color Burn",
     "BloodMoon", "Binary", "Lightning", "Disco", "Festive", "Radioactive",
     "Moon Fragment", "Abyssal", "Cosmic", "Equinox", "Glitch", "Solar", "8-Bit", "Invasion",
     -- FIX 6: Aurora & Midnight itu mutasi beneran (sama kayak Abyssal), makanya harus tetap ada di sini.
     -- Masalahnya BUKAN di list ini, tapi di cara deteksi prefix-nya -- lihat MutasiFalsePositiveSpecies di bawah.
-    "Aurora", "Midnight", "Elemental",
+    "Aurora", "Midnight", "Elemental", "Ghost",
     -- TODO: kalo mau nambahin "Albino" tinggal masukin string-nya di sini, contoh: "Albino",
 }
 
@@ -205,6 +172,9 @@ local LegendaryCrystalList = {
     "Blue Sea Dragon", "Star Snail", "Cute Dumbo", "Blossom Jelly", "Bioluminescent Octopus",
 }
 
+local WitheringCoreList = { ["Withering Core"] = true }
+local TribunalWitheringCoreList = { ["Tribunal Withering Core"] = true }
+
 -- ============================================================
 --  MYTHIC TIER (embed merah, terpisah dari Secret/Ruby/Legendary)
 -- ============================================================
@@ -213,242 +183,192 @@ local MythicFishList = {
     -- tinggal nambahin string baru di sini kalau nanti ada ikan mitos lain
 }
 
-local FishChanceData = {
-    ["Crystal Crab"]              = "1 in 750K",
-    ["Orca"]                      = "1 in 1.5M",
-    ["Zombie Shark"]              = "1 in 250K",
-    ["Zombie Megalodon"]          = "1 in 4M",
-    ["Dead Zombie Shark"]         = "1 in 500K",
-    ["Blob Shark"]                = "1 in 250K",
-    ["Ghost Shark"]               = "1 in 500K",
-    ["Skeleton Narwhal"]          = "1 in 600K",
-    ["Ghost Worm Fish"]           = "1 in 1M",
-    ["Worm Fish"]                 = "1 in 3M",
-    ["Megalodon"]                 = "1 in 4M",
-    ["1x1x1x1 Comet Shark"]       = "1 in 4M",
-    ["Bloodmoon Whale"]           = "1 in 5M",
-    ["Lochness Monster"]          = "1 in 3M",
-    ["Monster Shark"]             = "1 in 2.5M",
-    ["Eerie Shark"]               = "1 in 250K",
-    ["Great Whale"]               = "1 in 900K",
-    ["Frostborn Shark"]           = "1 in 500K",
-    ["Thin Armor Shark"]          = "1 in 300K",
-    ["Scare"]                     = "1 in 3M",
-    ["Queen Crab"]                = "1 in 800K",
-    ["King Crab"]                 = "1 in 1.2M",
-    ["Cryoshade Glider"]          = "1 in 450K",
-    ["Panther Eel"]               = "1 in 750K",
-    ["Giant Squid"]               = "1 in 800K",
-    ["Depthseeker Ray"]           = "1 in 1.2M",
-    ["Robot Kraken"]              = "1 in 3.5M",
-    ["Mosasaur Shark"]            = "1 in 800K",
-    ["King Jelly"]                = "1 in 1.5M",
-    ["Bone Whale"]                = "1 in 2M",
-    ["Elshark Gran Maja"]         = "1 in 4M",
-    ["Elpirate Gran Maja"]        = "1 in 4M",
-    ["ElRetro Gran Maja"]         = "1 in 4M",
-    ["Ancient Whale"]             = "1 in 2.75M",
-    ["Gladiator Shark"]           = "1 in 1M",
-    ["Ancient Lochness Monster"]  = "1 in 3M",
-    ["Talon Serpent"]             = "1 in 3M",
-    ["Hacker Shark"]              = "1 in 2M",
-    ["Strawberry Choc Megalodon"] = "1 in 4M",
-    ["Krampus Shark"]             = "1 in 1M",
-    ["Emerald Winter Whale"]      = "1 in 1.5M",
-    ["Winter Frost Shark"]        = "1 in 3M",
-    ["Icebreaker Whale"]          = "1 in 4M",
-    ["Cursed Kraken"]             = "1 in 3M",
-    ["Pirate Megalodon"]          = "1 in 4M",
-    ["Leviathan"]                 = "1 in 5M",
-    ["Viridis Lurker"]            = "1 in 1.4M",
-    ["Ancient Magma Whale"]       = "1 in 5M",
-    ["Mutant Runic Koi"]          = "1 in ??",
-    ["Cosmic Mutant Shark"]       = "1 in 2M",
-    ["Strawberry Orca"]           = "1 in 3M",
-    ["Bonemaw Tyrant"]            = "1 in 2.5M",
-    ["Rainbow Comet Shark"]       = "1 in ??",
-    ["Love Nessie"]               = "1 in ??",
-    ["Broken Heart Nessie"]       = "1 in ??",
-    ["Sea Eater"]                 = "1 in 25M",
-    ["Thunderzilla"]              = "1 in 30M",
-    ["Iridesca"]                  = "1 in 25M",
-    ["Eggy Enchant Stone"]        = "1 in 100K",
-    ["Deepsea Monster Axolotl"]   = "1 in 2M",
-    ["Blocky Lochness Monster"]   = "1 in 3M",
-    ["Frostbite Leviathan"]       = "1 in 12M",
-    ["Aurelion"]                  = "1 in 3M",
-    ["Runic Enchant Stone"]       = "1 in 700K",
-    ["Frogalloon"]                = "1 in 1.5M",
-    ["Fluorivane"]                = "1 in 15M",
-    ["Coral Whale"]               = "1 in 2M",
-    ["Flame Tyrant"]              = "1 in 5M",
-    ["Cerulean Dragon"]           = "1 in 25M",
-    ["Withering Core"]            = "1 in 3M",
-    ["Machodon"]                  = "1 in 10M",
-    ["Crystalline Behemoth"]      = "1 in 20M",
-    ["Frostmoon Whale"]           = "1 in 5M",
-    ["Crystal Goliath"]           = "1 in 3M",
-    ["Ketupat Whale"]             = "1 in ??",
-    ["Scorching Veinmaw"]         = "1 in 5M",
-    ["Glacial Serpent"]           = "1 in 6M",
-    ["Elemental Tempestray"]      = "1 in 1M",
-    ["Dark Megalodon"]            = "1 in 8M",
-    ["Caustic Maw"]               = "1 in 4M",
-    ["Coral Reaper"]              = "1 in 6M",
-    ["Sunken Hadalith"]           = "1 in ??",
-    ["Trench Warden"]             = "1 in 15M",
-    ["Caeruleum Razerback"]       = "1 in 3M",
-    -- FIX (rapihkan): key ini sebelumnya "two-headed shark" (t kecil), padahal SecretFishList
-    -- & FishImageURL pakai "Two-headed shark" (T besar) -- akibatnya field Chance di embed
-    -- selalu nongol "Unknown" walau datanya ada, gara-gara lookup case-sensitive gak ketemu.
-    ["Two-headed shark"]          = "1 in 3M",
-    ["Ragnarex"]                  = "1 in 35M",
-    ["Colossal Shipwreck Crab"]   = "1 in 5M",
-    ["Astrelle"]                  = "1 in 6M",
-    ["Moonwake Ray"]              = "1 in 5M",
-    ["Astralune"]                 = "1 in 20M",
-    ["Starglass Guardian"]        = "1 in 3M",
-    ["Pelagon"]                   = "1 in 4.5M",
-    ["Riftborn Arowana"]          = "1 in 4.5M",
-    ["Crimson Dreadtusk"]         = "1 in 20M",
-    ["Stormshell Brute"]          = "1 in 4M",
-    ["Pyrocoil"]                  = "1 in 4M",
-    ["Wintertusk Mammofin"]       = "1 in 4M",
-    ["ELEMENTAL HYDRA"]           = "1 in 40M",
-    ["OVERLORD HYDRA"]            = "1 in 45M",
-    ["Ashen Kingfish"]            = "1 in 3.50M",
-    ["Tribunal Withering Core"]   = "1 in 5M",
-    ["Everbloom"]                 = "1 in 20M",
-    ["Mr Money Bags"]             = "1 in 4M",
-    ["VeloByte"]                  = "1 in 5M",
-    ["Shellshock X"]              = "1 in 3M",
-    ["Cenobyte.EXE"]              = "1 in 25M",
-    ["GigaByte"]                  = "1 in 4.5M",
-    ["Jellybeam"]                 = "1 in 4M",
-    ["Charybdis"]                 = "1 in ??",
+ -- ============================================================
+--  AUTO DATABASE / EVENT-ONLY IMAGES
+-- ============================================================
+
+-- Hanya gambar yang memang milik webhook/event khusus yang tetap manual.
+-- Tidak ada lagi daftar URL satu per satu untuk seluruh ikan.
+local EventImageURL = {
+    ["Stormshell Brute"]       = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/StormshellBrute.png",
+    ["Wintertusk Mammofin"]    = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/WintertuskMammofin.png",
+    ["Pyrocoil"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Pyrocoil.png",
+    ["CharybdisBossEvent"]      = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/CharybdisBossEvent.png",
+    ["next"]                    = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/NEXT.PNG",
+    ["treasure hunt"]           = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/treasure.png",
+    ["Crystal"]                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/crystal.png",
+    ["Dark Megalodon"]          = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/14.png",
+    ["Megalodon"]               = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/34.png",
+    ["Thunderzilla"]            = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/38.png",
+    ["Aurora"]                  = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/99.png",
 }
 
-local NP = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main"
+local AutoFishDB = {}
+local AutoFishDBLower = {}
+local AutoMutationDBLower = {}
 
-local FishImageURL = {
-    ["Charybdis"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Charybdis.png",
-    ["CharybdisBossEvent"]       = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/CharybdisBossEvent.png",
-    ["Jellybeam"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Jellybeam.png",
-    ["GigaByte"]                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/GigaByte.png",
-    ["Cenobyte.EXE"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/IMG_3205.png",
-    ["Shellshock X"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/ShellshockX.PNG",
-    ["next"]                     = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/NEXT.PNG",
-    ["VeloByte"]                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/VeloByte.png",
-    ["Everbloom"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Everbloom.WEBP",
-    ["Mr Money Bags"]            = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Money%20Bags.png",
-    ["Frostborn Shark"]          = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/9.png",
-    ["Crystal Goliath"]          = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/11.png",
-    ["Crystalline Behemoth"]     = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/10.png",
-    ["Elemental Tempestray"]     = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/13.png",
-    ["Dark Megalodon"]           = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/14.png",
-    ["Withering Core"]           = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/WCore.png",
-    ["Flame Tyrant"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/17.png",
-    ["Scorching Veinmaw"]        = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/18.png",
-    ["Cerulean Dragon"]          = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/19.png",
-    ["King Crab"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/21.png",
-    ["Queen Crab"]               = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/22.png",
-    ["Panther Eel"]              = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/23.png",
-    ["Cryoshade Glider"]         = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/24.png",
-    ["Giant Squid"]              = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/25.png",
-    ["Depthseeker Ray"]          = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/26.png",
-    ["Robot Kraken"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/27.png",
-    ["Ghost Shark"]              = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/29.png",
-    ["Skeleton Narwhal"]         = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/SkelNarh.png",
-    ["Blob Shark"]               = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/31.png",
-    ["Worm Fish"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/32.png",
-    ["Cosmic Mutant Shark"]      = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/33.png",
-    ["Megalodon"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/34.png",
-    ["Bloodmoon Whale"]          = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/36.png",
-    ["Frostmoon Whale"]          = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/37.png",
-    ["Thunderzilla"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/38.png",
-    ["Thin Armor Shark"]         = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/40.png",
-    ["Scare"]                    = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/41.png",
-    ["Lochness Monster"]         = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/43.png",
-    ["Ancient Magma Whale"]      = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/44.png",
-    ["Crystal Crab"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/46.png",
-    ["Orca"]                     = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/47.png",
-    ["Eerie Shark"]              = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/49.png",
-    ["Monster Shark"]            = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/50.png",
-    ["Eggy Enchant Stone"]       = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/52.png",
-    ["Strawberry Orca"]          = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/53.png",
-    ["Iridesca"]                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/54.png",
-    ["Frogalloon"]               = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/56.png",
-    ["Blocky Lochness Monster"]  = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/57.png",
-    ["Aurelion"]                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/58.png",
-    ["Frostbite Leviathan"]      = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/59.png",
-    ["Runic Enchant Stone"]      = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/61.png",
-    ["Bonemaw Tyrant"]           = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/00.png",
-    ["Mutant Runic Koi"]         = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/62.png",
-    ["Deepsea Monster Axolotl"]  = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/63.png",
-    ["Fluorivane"]               = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/64.png",
-    ["Sea Eater"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/65.png",
-    ["Pirate Megalodon"]         = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/67.png",
-    ["Elpirate Gran Maja"]       = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/68.png",
-    ["Cursed Kraken"]            = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/69.png",
-    ["Mosasaur Shark"]           = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/71.png",
-    ["King Jelly"]               = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/72.png",
-    ["Gladiator Shark"]          = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/75.png",
-    ["Ancient Lochness Monster"] = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/76.png",
-    ["Elshark Gran Maja"]        = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/77.png",
-    ["Viridis Lurker"]           = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/78.png",
-    ["Bone Whale"]               = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/79.png",
-    ["Ancient Whale"]            = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/80.png",
-    ["Great Whale"]              = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/82.png",
-    ["Coral Whale"]              = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/83.png",
-    ["Love Nessie"]              = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/85.png",
-    ["Broken Heart Nessie"]      = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/86.png",
-    ["Leviathan"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Leviathan.png",
-    ["Rainbow Comet Shark"]      = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/RainbowComet.png",
-    ["Ruby Gemstone"]            = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Ruby.png",
-    ["Glacial Serpent"]          = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/GlacialSerpent.png",
-    ["Machodon"]                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Machodon.png",
-    ["Crystal"]                  = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/crystal.png",
-    ["treasure hunt"]            = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/treasure.png",
-    ["Caustic Maw"]              = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/97.png",
-    ["Aurora"]                   = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/99.png",
-    ["Coral Reaper"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/CoralReaper.png",
-    ["Trench Warden"]            = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/TrenchWarden.png",
-    ["Caeruleum Razerback"]      = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/CureleamBarbak.png",
-    ["Two-headed shark"]         = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/TwoHeadedShark.png",
-    ["Ragnarex"]                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Ragnarex.png",
-    ["Colossal Shipwreck Crab"]  = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/ColShipCrab.png",
-    -- NOTE: nama file "Astrlele.png" ini keliatan kayak typo (harusnya "Astrelle.png"?) --
-    -- cek lagi nama file yang beneran ke-upload di repo new-pisit-image, kalau salah nanti
-    -- gambarnya gak muncul kayak kasus Glacial Serpent kemarin.
-    ["Astrelle"]                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Astrelle.png",
-    ["Astralune"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Astralune.png",
-    ["Moonwake Ray"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/MoonwakeRay.png",
-    ["Pelagon"]                  = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Pelagon.png",
-    ["Starglass Guardian"]       = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/StarglassGuardian.png",
-    ["Riftborn Arowana"]         = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/RiftbornArowana.png",
-    ["Crimson Dreadtusk"]        = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/CrimsonDreadtusk.png",
-    ["Stormshell Brute"]         = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/StormshellBrute.png",
-    ["Pyrocoil"]                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Pyrocoil.png",
-    ["Wintertusk Mammofin"]      = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/WintertuskMammofin.png",
-    ["ELEMENTAL HYDRA"]          = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/ElementalHydra.png",
-    ["OVERLORD HYDRA"]           = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/OVERLORDHYDRA.png",
-    ["Ashen Kingfish"]           = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/AshenKingfish.png",
-    ["Tribunal Withering Core"]  = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/TribunalWitheringCore.png",
-    ["Shiny Hammerhead Shark"]   = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/ShinyHammerheadShark.png",
-}
+-- Sesuai request: dua Withering Core ini tetap manual dan tidak diklasifikasikan
+-- otomatis dari Tier game.
 
-
--- Helper case-insensitive buat ambil URL gambar ikan. Ini nyegah kejadian kayak bug
--- "two-headed shark" -- kalau ada typo beda huruf besar/kecil antara SecretFishList/
--- ForgottenList/dll dengan key di FishImageURL, gambar tetap ketemu selama nama dasarnya sama.
-local FishImageURLLower = {}
-for k, v in pairs(FishImageURL) do
-    FishImageURLLower[string.lower(k)] = v
+local function NormalizeName(name)
+    return string.lower(tostring(name or "")):match("^%s*(.-)%s*$") or ""
 end
 
-local function GetFishImageURL(baseName)
+local function IsValidDataTable(data)
+    return type(data) == "table"
+        and type(data.Data) == "table"
+        and type(data.Data.Name) == "string"
+        and data.Data.Name ~= ""
+end
+
+local function RegisterAutoItem(data, source)
+    if not IsValidDataTable(data) then return end
+
+    local name = tostring(data.Data.Name)
+    local lower = NormalizeName(name)
+    if lower == "" then return end
+
+    local probability = type(data.Probability) == "table" and tonumber(data.Probability.Chance) or nil
+    local tier = tonumber(data.Data.Tier)
+    if not probability and not tier then return end
+
+    local entry = AutoFishDBLower[lower] or {}
+    entry.Name = name
+    entry.Icon = (type(data.Data.Icon) == "string" and data.Data.Icon ~= "" and data.Data.Icon) or entry.Icon
+    entry.Tier = tier or entry.Tier
+    entry.Chance = probability or entry.Chance
+    entry.Type = data.Data.Type or entry.Type
+    entry.Variants = data.Variants or entry.Variants
+    entry.Source = source or entry.Source
+    AutoFishDBLower[lower] = entry
+    AutoFishDB[name] = entry
+end
+
+local function RegisterAutoMutation(data)
+    if not IsValidDataTable(data) then return end
+    if tostring(data.Data.Type) ~= "Variant" then return end
+    local name = tostring(data.Data.Name)
+    local lower = NormalizeName(name)
+    if lower ~= "" then AutoMutationDBLower[lower] = name end
+end
+
+local function ScanModuleContainer(container)
+    if not container then return end
+    for _, inst in ipairs(container:GetDescendants()) do
+        if inst:IsA("ModuleScript") then
+            local ok, result = pcall(require, inst)
+            if ok and type(result) == "table" then
+                RegisterAutoItem(result, inst:GetFullName())
+                RegisterAutoMutation(result)
+            end
+        end
+    end
+end
+
+local function BuildAutoDatabase()
+    AutoFishDB = {}
+    AutoFishDBLower = {}
+    AutoMutationDBLower = {}
+
+    local items = ReplicatedStorage:FindFirstChild("Items")
+    local variants = ReplicatedStorage:FindFirstChild("Variants")
+    if items then ScanModuleContainer(items) end
+    if variants then ScanModuleContainer(variants) end
+
+    local fishCount, mutationCount = 0, 0
+    for _ in pairs(AutoFishDBLower) do fishCount += 1 end
+    for _ in pairs(AutoMutationDBLower) do mutationCount += 1 end
+    print(string.format("[M B G AUTO DB] Items=%d | Mutations=%d", fishCount, mutationCount))
+end
+
+pcall(BuildAutoDatabase)
+
+local function GetAutoEntry(baseName)
     if not baseName then return nil end
-    return FishImageURL[baseName] or FishImageURLLower[string.lower(baseName)]
+    return AutoFishDBLower[NormalizeName(baseName)]
+end
+
+local function FormatChanceFromProbability(chance)
+    chance = tonumber(chance)
+    if not chance or chance <= 0 then return nil end
+    local oneIn = 1 / chance
+    local suffix, divisor
+    if oneIn >= 1000000000 then suffix, divisor = "B", 1000000000
+    elseif oneIn >= 1000000 then suffix, divisor = "M", 1000000
+    elseif oneIn >= 1000 then suffix, divisor = "K", 1000
+    else return "1 in " .. string.format("%.2f", oneIn):gsub("0+$", ""):gsub("%.$", "") end
+    local n = oneIn / divisor
+    local txt = string.format("%.2f", n):gsub("0+$", ""):gsub("%.$", "")
+    return "1 in " .. txt .. suffix
+end
+
+local function GetFishChance(baseName)
+    local entry = GetAutoEntry(baseName)
+    if entry and entry.Chance then
+        return FormatChanceFromProbability(entry.Chance) or "Unknown"
+    end
+    return "Unknown"
+end
+
+local function GetAutoFishImageURL(baseName)
+    local entry = GetAutoEntry(baseName)
+    local icon = entry and entry.Icon
+    if not icon or icon == "" then return nil end
+    if entry.ImageURL and entry.ImageURL ~= "" then return entry.ImageURL end
+
+    local assetId = tostring(icon):match("%d+")
+    if not assetId then return nil end
+
+    -- Pakai request executor yang sama seperti webhook, bukan HttpService:GetAsync,
+    -- karena script ini berjalan dari sisi client/executor.
+    local requestFunc = (syn and syn.request)
+        or (http and http.request)
+        or http_request
+        or (fluxus and fluxus.request)
+        or request
+    if not requestFunc then return nil end
+
+    local ok, response = pcall(function()
+        return requestFunc({
+            Url = "https://thumbnails.roblox.com/v1/assets?assetIds=" .. assetId ..
+                  "&size=420x420&format=Png&isCircular=false",
+            Method = "GET",
+            Headers = { ["Content-Type"] = "application/json" },
+        })
+    end)
+    if not ok or type(response) ~= "table" then return nil end
+
+    local raw = response.Body or response.body
+    if not raw or raw == "" then return nil end
+    local ok2, decoded = pcall(function() return HttpService:JSONDecode(raw) end)
+    if not ok2 or type(decoded) ~= "table" or type(decoded.data) ~= "table" then return nil end
+
+    local first = decoded.data[1]
+    local imageUrl = first and first.imageUrl or nil
+    if imageUrl and imageUrl ~= "" then
+        entry.ImageURL = imageUrl
+        return imageUrl
+    end
+    return nil
+end
+
+-- Forward declaration: foto ikan akan digabung dinamis dengan watermark MBG
+-- melalui Cloudinary, tanpa upload file foto ikan baru.
+local GetFishCompositeImageURL
+
+local function GetFishImageURL(baseName)
+    return GetFishCompositeImageURL and GetFishCompositeImageURL(baseName)
+        or GetAutoFishImageURL(baseName)
+end
+
+local function IsAutoSecret(baseName)
+    local entry = GetAutoEntry(baseName)
+    return entry and tonumber(entry.Tier) == 7
+end
+
+local function IsAutoForgotten(baseName)
+    local entry = GetAutoEntry(baseName)
+    return entry and tonumber(entry.Tier) == 8
 end
 
 -- ============================================================
@@ -470,7 +390,7 @@ local EventHuntData = {
         description  = "Pindah lekkkkkkk " .. EMOJI_STORM,
         color        = 1146986,
         emoji        = "⚡",
-        thumbUrl     = FishImageURL["Stormshell Brute"],
+        thumbUrl     = EventImageURL["Stormshell Brute"],
         isElemental  = true,
     },
     {
@@ -483,7 +403,7 @@ local EventHuntData = {
         description  = "Pindah lekkkkkkk " .. EMOJI_BLIZZARD,
         color        = 6530531,
         emoji        = "❄️",
-        thumbUrl     = FishImageURL["Wintertusk Mammofin"],
+        thumbUrl     = EventImageURL["Wintertusk Mammofin"],
         isElemental  = true,
     },
     {
@@ -496,7 +416,7 @@ local EventHuntData = {
         description  = "Pindah lekkkkkkk " .. EMOJI_VOLCANO,
         color        = 16075047,
         emoji        = "🌋",
-        thumbUrl     = FishImageURL["Pyrocoil"],
+        thumbUrl     = EventImageURL["Pyrocoil"],
         isElemental  = true,
     },
     {
@@ -509,7 +429,7 @@ local EventHuntData = {
         description  = "Charybdis Boss Battle Dimulai! 🌪️",
         color        = 10181046,
         emoji        = "🌪️",
-        thumbUrl     = FishImageURL["CharybdisBossEvent"],
+        thumbUrl     = EventImageURL["CharybdisBossEvent"],
     },
     --[[ dinonaktifkan -- Treasure Hunt
     {
@@ -518,7 +438,7 @@ local EventHuntData = {
         description  = "katakan Peta 🗺️",
         color        = 16766720,
         emoji        = "💰",
-        thumbUrl     = FishImageURL["treasure hunt"],
+        thumbUrl     = EventImageURL["treasure hunt"],
     },
     ]]
     --[[ dinonaktifkan -- Crystal Event
@@ -528,7 +448,7 @@ local EventHuntData = {
         description  = "Crystal muncul gas nambang " .. EMOJI_CRYSTAL,
         color        = 1146986,
         emoji        = "💎",
-        thumbUrl     = FishImageURL["Crystal"],
+        thumbUrl     = EventImageURL["Crystal"],
     },
     ]]
     --[[ dinonaktifkan -- Dark Megalodon Hunt
@@ -538,7 +458,7 @@ local EventHuntData = {
         description  = "Dark Mega guys " .. EMOJI_MEGALODON,
         color        = 2303786,
         emoji        = "🌑",
-        thumbUrl     = FishImageURL["Dark Megalodon"],
+        thumbUrl     = EventImageURL["Dark Megalodon"],
     },
     ]]
     --[[ dinonaktifkan -- Megalodon Hunt
@@ -548,7 +468,7 @@ local EventHuntData = {
         description  = "Mega gusy 🎣",
         color        = 3447003,
         emoji        = "🦈",
-        thumbUrl     = FishImageURL["Megalodon"],
+        thumbUrl     = EventImageURL["Megalodon"],
     },
     ]]
     --[[ dinonaktifkan -- Thunderzilla Hunt
@@ -558,7 +478,7 @@ local EventHuntData = {
         description  = "zilla oi " .. EMOJI_THUNDER,
         color        = 16776960,
         emoji        = "⚡",
-        thumbUrl     = FishImageURL["Thunderzilla"],
+        thumbUrl     = EventImageURL["Thunderzilla"],
     },
     ]]
     --[[ dinonaktifkan -- Aurora Borealis
@@ -568,7 +488,7 @@ local EventHuntData = {
         description  = "cantiknyooo",
         color        = 9055202,
         emoji        = "💫",
-        thumbUrl     = FishImageURL["Aurora"],
+        thumbUrl     = EventImageURL["Aurora"],
     },
     ]]
 }
@@ -579,9 +499,10 @@ local EventCooldown = {}
 --  STATE / CACHE
 -- ============================================================
 
-local MentionCache    = {}
-local FishImageCache  = {}
-local AvatarCache     = {}
+local MentionCache         = {}
+local FishImageCache       = {}
+local FishCompositeCache   = {} -- URL hasil gabungan watermark + foto ikan (tanpa upload foto ikan)
+local AvatarCache          = {}
 local LeaveTimers     = {}
 local PlayerStats     = {}
 local PlayerNameToId  = {}
@@ -743,26 +664,36 @@ end
 -- ============================================================
 
 local function FindSecretFish(fishName)
-    local lower = string.lower(fishName)
-    for _, baseName in ipairs(SecretFishList) do
-        if lower == string.lower(baseName) then return baseName, nil end
+    local lower = string.lower(fishName or "")
+
+    -- GHOST WORM FISH EXCEPTION:
+    -- "Ghost Worm Fish" = Worm Fish dengan mutasi Ghost.
+    -- "Ghost Worm" tetap diproses normal sebagai Secret Fish.
+    if lower:match("^ghost%s+worm%s+fish$") then
+        return "Worm Fish", "Ghost"
     end
     local bestBase, bestLen, bestMutasi = nil, 0, nil
-    for _, baseName in ipairs(SecretFishList) do
-        local s = string.find(lower, string.lower(baseName), 1, true)
-        if s then
-            local mutasi = nil
-            if s > 1 then
-                mutasi = fishName:sub(1, s - 1):match("^%s*(.-)%s*$")
-                if mutasi == "" then mutasi = nil end
-            end
-            if #baseName > bestLen then
-                bestLen    = #baseName
-                bestBase   = baseName
-                bestMutasi = mutasi
+
+    -- AUTO ONLY: Tier 7 = Secret, Tier 8 = Forgotten.
+    for dbLower, entry in pairs(AutoFishDBLower) do
+        if IsAutoSecret(entry.Name) or IsAutoForgotten(entry.Name) then
+            local s = string.find(lower, dbLower, 1, true)
+            if s then
+                local beforeOk = (s == 1) or lower:sub(s - 1, s - 1) == " "
+                local afterPos = s + #dbLower
+                local afterOk = (afterPos > #lower) or lower:sub(afterPos, afterPos) == " "
+                if beforeOk and afterOk and #dbLower > bestLen then
+                    local mutasi
+                    if s > 1 then
+                        mutasi = fishName:sub(1, s - 1):match("^%s*(.-)%s*$")
+                        if mutasi == "" then mutasi = nil end
+                    end
+                    bestBase, bestLen, bestMutasi = entry.Name, #dbLower, mutasi
+                end
             end
         end
     end
+
     return bestBase, bestMutasi
 end
 
@@ -790,7 +721,15 @@ local function FindMutasi(fishName)
     end
     if lower == "" then return nil end
 
-    for _, mutasiName in ipairs(MutasiList) do
+    local mutationNames = {}
+    for _, mutasiName in pairs(AutoMutationDBLower) do
+        table.insert(mutationNames, mutasiName)
+    end
+    for _, mutasiName in ipairs(MutasiFallbackList) do
+        table.insert(mutationNames, mutasiName)
+    end
+
+    for _, mutasiName in ipairs(mutationNames) do
         local mutasiLower = string.lower(mutasiName)
         local s = string.find(lower, mutasiLower, 1, true)
         if s then
@@ -1388,7 +1327,7 @@ local function ScheduleEventEndNotification(eventData, eventStartTime)
                     { name = SEP .. " Next Event", value = "<t:" .. tostring(nextEventTime) .. ":R>", inline = true },
                 },
                 nil,
-                FishImageURL["next"],
+                EventImageURL["next"],
                 "M B G Event Monitor",
                 { name = EMOJI_EVENTTAG .. " Event Hunt Alert",
                   icon_url = WEBHOOK_AVATAR ~= "" and WEBHOOK_AVATAR or nil }
@@ -1698,6 +1637,100 @@ local function GetRobloxAvatarUrlById(userId)
     return data.data[1].imageUrl
 end
 
+-- ============================================================
+--  FISH IMAGE -> MBG WATERMARK (DYNAMIC CLOUDINARY)
+--  Foto ikan TIDAK di-upload ke Cloudinary.
+--  Roblox thumbnail dipakai sebagai sumber remote, lalu Cloudinary
+--  mengambilnya via l_fetch dan menaruhnya di atas watermark MBG.
+--  Hasilnya hanya berupa URL transformasi.
+-- ============================================================
+
+local function GetRobloxFishImageUrl(baseName)
+    if not baseName or baseName == "" then return nil end
+
+    local entry = GetAutoEntry(baseName)
+    local icon = entry and entry.Icon
+    if not icon or icon == "" then return nil end
+
+    local assetId = tostring(icon):match("%d+")
+    if not assetId then return nil end
+
+    local requestFunc = (syn and syn.request)
+        or (http and http.request)
+        or http_request
+        or (fluxus and fluxus.request)
+        or request
+
+    if not requestFunc then
+        return nil
+    end
+
+    local ok, response = pcall(function()
+        return requestFunc({
+            Url = "https://thumbnails.roblox.com/v1/assets?assetIds=" .. assetId
+                .. "&size=420x420&format=Png&isCircular=false",
+            Method = "GET",
+            Headers = { ["Content-Type"] = "application/json" },
+        })
+    end)
+
+    if not ok or type(response) ~= "table" then
+        return nil
+    end
+
+    local raw = response.Body or response.body
+    if not raw or raw == "" then return nil end
+
+    local ok2, decoded = pcall(function()
+        return HttpService:JSONDecode(raw)
+    end)
+    if not ok2 or type(decoded) ~= "table" or type(decoded.data) ~= "table" then
+        return nil
+    end
+
+    local first = decoded.data[1]
+    local imageUrl = first and first.imageUrl or nil
+    if imageUrl and imageUrl ~= "" then
+        entry.ImageURL = imageUrl
+        return imageUrl
+    end
+
+    return nil
+end
+
+GetFishCompositeImageURL = function(baseName)
+    if not baseName or baseName == "" then return nil end
+
+    -- Cache hanya URL transformasi di memory script. Tidak ada upload file ikan.
+    if FishCompositeCache[baseName] then
+        return FishCompositeCache[baseName]
+    end
+
+    local fishUrl = GetRobloxFishImageUrl(baseName)
+        or GetAutoFishImageURL(baseName)
+    if not fishUrl then
+        return nil
+    end
+
+    local encodedFish = Base64EncodeUrl(fishUrl)
+    if not encodedFish then
+        warn("[M B G Fish] Base64 encoder tidak tersedia, fallback ke foto ikan Roblox.")
+        return fishUrl
+    end
+
+    -- Watermark MBG = BASE/BACKGROUND
+    -- Foto ikan Roblox = OVERLAY/FRONT
+    -- Jadi hasil akhirnya: watermark di belakang, foto ikan di atasnya.
+    local cloudinaryUrl = "https://res.cloudinary.com/" .. CLOUDINARY_CLOUD_NAME
+        .. "/image/upload/c_fill,w_420,h_420"
+        .. "/l_fetch:" .. encodedFish
+        .. "/c_fit,w_360,h_360/fl_layer_apply,g_center"
+        .. "/" .. CLOUDINARY_WATERMARK_ID
+
+    FishCompositeCache[baseName] = cloudinaryUrl
+    return cloudinaryUrl
+end
+
 local function GetAvatarUrlById(userId)
     local avatarUrl = GetRobloxAvatarUrlById(userId)
     if not avatarUrl then return nil end
@@ -1812,14 +1845,11 @@ local function CheckAndSend(rawMsg)
     local baseName, mutasi = FindSecretFish(data.fish)
     if baseName then
         local imageUrl = GetFishImageURL(baseName) or (FishImageCache[baseName] and (PROXY .. "/asset/" .. FishImageCache[baseName]))
-        local isForgotten = false
-        for _, name in ipairs(ForgottenList) do
-            if string.lower(baseName) == string.lower(name) then isForgotten = true; break end
-        end
+        local isForgotten = IsAutoForgotten(baseName)
         if uid and PlayerStats[uid] then
             PlayerStats[uid].secretList[baseName] = (PlayerStats[uid].secretList[baseName] or 0) + 1
         end
-        local chanceInfo  = FishChanceData[baseName] or "Unknown"
+        local chanceInfo  = GetFishChance(baseName)
         local mutasiField = mutasi and (EMOJI_MUTASI .. " *" .. mutasi .. "*") or "—"
         local fields = {
             { name = SEP .. " Pemain", value = "**" .. GetVerifiedName(data.player) .. "**", inline = true },
