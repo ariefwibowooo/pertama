@@ -331,7 +331,7 @@ local FishChanceData = {
 local NP = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main"
 
 local FishImageURL = {
-    ["Charybdis"]                = "---",
+    ["Charybdis"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Charybdis.png",
     ["CharybdisBossEvent"]       = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/CharybdisBossEvent.png",
     ["Jellybeam"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Jellybeam.png",
     ["GigaByte"]                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/GigaByte.png",
@@ -346,7 +346,7 @@ local FishImageURL = {
     ["Crystalline Behemoth"]     = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/10.png",
     ["Elemental Tempestray"]     = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/13.png",
     ["Dark Megalodon"]           = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/14.png",
-    ["Withering Core"]           = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/16.png",
+    ["Withering Core"]           = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/WCore.png",
     ["Flame Tyrant"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/17.png",
     ["Scorching Veinmaw"]        = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/18.png",
     ["Cerulean Dragon"]          = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/19.png",
