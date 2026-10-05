@@ -139,9 +139,43 @@ end
 
 -- ============================================================
 --  DATABASE
+--  SECRET MANUAL + AUTO TIER 7/8 FISH FILTER
 -- ============================================================
 
-  local MutasiFallbackList = {
+  local SecretFishList = {
+    "Crystal Crab", "Orca", "Zombie Shark", "Zombie Megalodon", "Dead Zombie Shark",
+    "Blob Shark", "Ghost Shark", "Skeleton Narwhal", "Ghost Worm Fish", "Worm Fish",
+    "Megalodon", "1x1x1x1 Comet Shark", "Bloodmoon Whale", "Lochness Monster",
+    "Monster Shark", "Eerie Shark", "Great Whale", "Frostborn Shark", "Thin Armor Shark",
+    "Scare", "Queen Crab", "King Crab", "Cryoshade Glider", "Panther Eel",
+    "Giant Squid", "Depthseeker Ray", "Robot Kraken", "Mosasaur Shark", "King Jelly",
+    "Bone Whale", "Elshark Gran Maja", "Elpirate Gran Maja", "Ancient Whale",
+    "Gladiator Shark", "Ancient Lochness Monster", "Talon Serpent", "Hacker Shark",
+    "ElRetro Gran Maja", "Strawberry Choc Megalodon", "Krampus Shark",
+    "Emerald Winter Whale", "Winter Frost Shark", "Icebreaker Whale", "Leviathan",
+    "Pirate Megalodon", "Viridis Lurker", "Cursed Kraken", "Ancient Magma Whale",
+    "Rainbow Comet Shark", "Love Nessie", "Broken Heart Nessie",
+    "Mutant Runic Koi", "Ketupat Whale", "Cosmic Mutant Shark", "Strawberry Orca",
+    "Bonemaw Tyrant", "Deepsea Monster Axolotl", "Blocky Lochness Monster", "Aurelion",
+    "Runic Enchant Stone", "Frogalloon", "Coral Whale", "Flame Tyrant", "Withering Core",
+    "Sea Eater", "Thunderzilla", "Iridesca", "Frostbite Leviathan", "Fluorivane",
+    "Cerulean Dragon", "Machodon", "Scorching Veinmaw", "Crystalline Behemoth",
+    "Frostmoon Whale", "Crystal Goliath", "Eggy Enchant Stone", "Dark Megalodon",
+    "Elemental Tempestray", "Glacial Serpent", "Caustic Maw", "Coral Reaper",
+    "Sunken Hadalith", "Trench Warden", "Caeruleum Razerback", "Two-headed shark", "Ragnarex",
+    "Colossal Shipwreck Crab", "Astrelle", "Moonwake Ray", "Astralune", "Starglass Guardian",
+    "Pelagon", "Crimson Dreadtusk", "Riftborn Arowana", "Stormshell Brute", "Pyrocoil",
+    "Wintertusk Mammofin", "Ashen Kingfish", "Tribunal Withering Core", "ELEMENTAL HYDRA", "OVERLORD HYDRA",
+    "Everbloom", "Mr Money Bags", "Shellshock X", "VeloByte", "Cenobyte.EXE", "GigaByte", "Jellybeam", "Charybdis",
+}
+
+local ForgottenList = {
+    "ELEMENTAL HYDRA", "OVERLORD HYDRA", "Iridesca", "Frostbite Leviathan", "Fluorivane",
+    "Cerulean Dragon", "Crystalline Behemoth", "Trench Warden", "Ragnarex",
+    "Astralune", "Crimson Dreadtusk", "Sea Eater", "Thunderzilla", "Everbloom", "Cenobyte.EXE",
+}
+
+local MutasiFallbackList = {
     "Noob", "Fairy Dust", "Holographic", "Gemstone", "Fire", "Color Burn",
     "BloodMoon", "Binary", "Lightning", "Disco", "Festive", "Radioactive",
     "Moon Fragment", "Abyssal", "Cosmic", "Equinox", "Glitch", "Solar", "8-Bit", "Invasion",
@@ -361,14 +395,41 @@ local function GetFishImageURL(baseName)
         or GetAutoFishImageURL(baseName)
 end
 
+local function IsManualSecret(baseName)
+    local lower = NormalizeName(baseName)
+    for _, name in ipairs(SecretFishList) do
+        if NormalizeName(name) == lower then
+            return true
+        end
+    end
+    return false
+end
+
+local function IsManualForgotten(baseName)
+    local lower = NormalizeName(baseName)
+    for _, name in ipairs(ForgottenList) do
+        if NormalizeName(name) == lower then
+            return true
+        end
+    end
+    return false
+end
+
+-- Auto classification hanya untuk FISH Tier 7/8.
+-- Secret Tier 6 seperti King Crab, Panther Eel, Hacker Shark tetap masuk
+-- melalui SecretFishList manual di atas.
 local function IsAutoSecret(baseName)
     local entry = GetAutoEntry(baseName)
-    return entry and tonumber(entry.Tier) == 7
+    return entry
+        and tostring(entry.Type) == "Fish"
+        and tonumber(entry.Tier) == 7
 end
 
 local function IsAutoForgotten(baseName)
     local entry = GetAutoEntry(baseName)
-    return entry and tonumber(entry.Tier) == 8
+    return entry
+        and tostring(entry.Type) == "Fish"
+        and tonumber(entry.Tier) == 8
 end
 
 -- ============================================================
@@ -664,7 +725,7 @@ end
 -- ============================================================
 
 local function FindSecretFish(fishName)
-    local lower = string.lower(fishName or "")
+    local lower = NormalizeName(fishName)
 
     -- GHOST WORM FISH EXCEPTION:
     -- "Ghost Worm Fish" = Worm Fish dengan mutasi Ghost.
@@ -672,11 +733,37 @@ local function FindSecretFish(fishName)
     if lower:match("^ghost%s+worm%s+fish$") then
         return "Worm Fish", "Ghost"
     end
-    local bestBase, bestLen, bestMutasi = nil, 0, nil
 
-    -- AUTO ONLY: Tier 7 = Secret, Tier 8 = Forgotten.
+    -- 1) SECRET MANUAL SELALU BERLAKU, termasuk Secret Tier 6.
+    -- Jadi King Crab / Panther Eel / Hacker Shark tetap terdeteksi walaupun Tier 6.
+    local bestBase, bestLen, bestMutasi = nil, 0, nil
+    for _, baseName in ipairs(SecretFishList) do
+        local baseLower = NormalizeName(baseName)
+        local s = string.find(lower, baseLower, 1, true)
+        if s then
+            local beforeOk = (s == 1) or lower:sub(s - 1, s - 1) == " "
+            local afterPos = s + #baseLower
+            local afterOk = (afterPos > #lower) or lower:sub(afterPos, afterPos) == " "
+            if beforeOk and afterOk and #baseLower > bestLen then
+                local mutasi
+                if s > 1 then
+                    mutasi = fishName:sub(1, s - 1):match("^%s*(.-)%s*$")
+                    if mutasi == "" then mutasi = nil end
+                end
+                bestBase, bestLen, bestMutasi = baseName, #baseLower, mutasi
+            end
+        end
+    end
+
+    if bestBase then
+        return bestBase, bestMutasi
+    end
+
+    -- 2) AUTO ONLY: Fish Tier 7 = Secret, Fish Tier 8 = Forgotten.
+    -- Tier 6 yang tidak ada di SecretFishList TIDAK ikut terdeteksi.
+    -- Non-Fish Tier 7/8 juga TIDAK ikut terdeteksi.
     for dbLower, entry in pairs(AutoFishDBLower) do
-        if IsAutoSecret(entry.Name) or IsAutoForgotten(entry.Name) then
+        if (IsAutoSecret(entry.Name) or IsAutoForgotten(entry.Name)) then
             local s = string.find(lower, dbLower, 1, true)
             if s then
                 local beforeOk = (s == 1) or lower:sub(s - 1, s - 1) == " "
@@ -1845,7 +1932,7 @@ local function CheckAndSend(rawMsg)
     local baseName, mutasi = FindSecretFish(data.fish)
     if baseName then
         local imageUrl = GetFishImageURL(baseName) or (FishImageCache[baseName] and (PROXY .. "/asset/" .. FishImageCache[baseName]))
-        local isForgotten = IsAutoForgotten(baseName)
+        local isForgotten = IsManualForgotten(baseName) or IsAutoForgotten(baseName)
         if uid and PlayerStats[uid] then
             PlayerStats[uid].secretList[baseName] = (PlayerStats[uid].secretList[baseName] or 0) + 1
         end
