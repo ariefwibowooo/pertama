@@ -2671,22 +2671,13 @@ local function CreateUI()
     floatStatusDotStroke.Thickness = 2
     floatStatusDotStroke.Parent    = floatStatusDot
 
-    local floatPulseTween = nil
     local function SetFloatStatus(active)
+        -- Status dibuat statis: tidak ada pulse/kedap-kedip.
+        -- ON = hijau tetap, OFF = merah tetap.
         floatStatusDot.BackgroundColor3 = active and Color3.fromRGB(0, 220, 100) or Color3.fromRGB(255, 60, 60)
         floatStroke.Color               = active and Color3.fromRGB(0, 220, 100) or Color3.fromRGB(50, 50, 50)
-        if floatPulseTween then floatPulseTween:Cancel(); floatPulseTween = nil end
-        floatStroke.Transparency = 0
-        if active then
-            floatPulseTween = TweenService:Create(
-                floatStroke,
-                TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
-                { Transparency = 0.55, Thickness = 3 }
-            )
-            floatPulseTween:Play()
-        else
-            floatStroke.Thickness = 2
-        end
+        floatStroke.Transparency        = 0
+        floatStroke.Thickness            = 2
     end
     SetFloatStatus(false)
 
