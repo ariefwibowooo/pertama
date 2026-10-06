@@ -498,12 +498,15 @@ local EventHuntData = {
         isElemental  = true,
     },
     {
+        -- Charybdis mengikuti pola event GUI non-Elemental
+        -- seperti Megalodon / Dark Megalodon / Thunderzilla.
+        -- TIDAK memakai isElemental dan TIDAK masuk fallback Elemental.
         textTriggers = {
             "a charybdis has appeared",
             "charybdis has appeared",
             "charybdis boss battle",
-            "a charybdis has appeared!",
             "charybdis boss fight",
+            "charybdis boss",
         },
         title        = "🌪️ Charybdis Boss Dimulai!",
         description  = "Charybdis Boss Battle Dimulai! 🌪️",
@@ -1499,8 +1502,9 @@ end
 --  EVENT DETECTION
 --  Mekanisme dasar mengikuti Heaven.lua yang sudah terbukti terbaca:
 --  TextLabel/TextButton -> ProcessEventText -> edge trigger OFF -> ON.
---  Bedanya, MBG tetap memakai filter khusus Elemental supaya Storm Weather
---  tidak dianggap sebagai Storm Elemental.
+--  Event non-Elemental seperti Charybdis dibaca dari GUI text yang sama
+--  seperti pola event hunt lama; filter khusus Elemental tetap dipertahankan
+--  agar Storm Weather tidak dianggap sebagai Storm Elemental.
 -- ============================================================
 
 local _hookedLabels = {}
@@ -1531,14 +1535,11 @@ local function MatchEventText(lower, evData)
             eventName = "blizzard"
         elseif titleLower:find("volcano", 1, true) then
             eventName = "volcano"
-        elseif titleLower:find("charybdis", 1, true) then
-            eventName = "charybdis"
         end
 
-        if eventName and lower:find(eventName, 1, true) then
-            if evData.isElemental then
-                return lower:find("elemental", 1, true) ~= nil
-            end
+        if eventName
+            and lower:find(eventName, 1, true)
+            and lower:find("elemental", 1, true) then
             return true
         end
     end
