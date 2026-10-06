@@ -498,15 +498,10 @@ local EventHuntData = {
         isElemental  = true,
     },
     {
-        -- Charybdis mengikuti pola event GUI non-Elemental
-        -- seperti Megalodon / Dark Megalodon / Thunderzilla.
-        -- TIDAK memakai isElemental dan TIDAK masuk fallback Elemental.
         textTriggers = {
             "a charybdis has appeared",
-            "charybdis has appeared",
             "charybdis boss battle",
             "charybdis boss fight",
-            "charybdis boss",
         },
         title        = "🌪️ Charybdis Boss Dimulai!",
         description  = "Charybdis Boss Battle Dimulai! 🌪️",
@@ -1502,15 +1497,38 @@ end
 --  EVENT DETECTION
 --  Mekanisme dasar mengikuti Heaven.lua yang sudah terbukti terbaca:
 --  TextLabel/TextButton -> ProcessEventText -> edge trigger OFF -> ON.
---  Event non-Elemental seperti Charybdis dibaca dari GUI text yang sama
---  seperti pola event hunt lama; filter khusus Elemental tetap dipertahankan
---  agar Storm Weather tidak dianggap sebagai Storm Elemental.
+--  Bedanya, MBG tetap memakai filter khusus Elemental supaya Storm Weather
+--  tidak dianggap sebagai Storm Elemental.
 -- ============================================================
 
 local _hookedLabels = {}
 local LabelEventState = {}
 
 local function MatchEventText(lower, evData)
+    -- CHARYBDIS SAJA: dibuat lebih toleran terhadap variasi kecil pada
+    -- pengumuman GUI. Logika Storm/Blizzard/Volcano Elemental di bawah
+    -- tidak diubah.
+    if evData.title == "🌪️ Charybdis Boss Dimulai!" then
+        local normalized = tostring(lower or "")
+            :gsub("<[^>]->", " ")
+            :gsub("[%c%z]", " ")
+            :gsub("%s+", " ")
+            :gsub("^%s+", "")
+            :gsub("%s+$", "")
+            :lower()
+
+        if normalized:find("a charybdis has appeared", 1, true)
+            or normalized:find("charybdis has appeared", 1, true)
+            or normalized:find("charybdis boss battle", 1, true)
+            or normalized:find("charybdis boss fight", 1, true)
+            or (normalized:find("charybdis", 1, true)
+                and (normalized:find("appeared", 1, true)
+                    or normalized:find("boss", 1, true))) then
+            return true
+        end
+        return false
+    end
+
     -- Trigger eksplisit dari EventHuntData.
     -- Untuk event Elemental, semua trigger aktif di DB mengandung "elemental",
     -- sehingga kata "storm" saja tidak pernah cukup untuk memicu webhook.
