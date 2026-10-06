@@ -500,7 +500,9 @@ local EventHuntData = {
     {
         textTriggers = {
             "a charybdis has appeared",
+            "charybdis has appeared",
             "charybdis boss battle",
+            "a charybdis has appeared!",
             "charybdis boss fight",
         },
         title        = "🌪️ Charybdis Boss Dimulai!",
@@ -1529,11 +1531,14 @@ local function MatchEventText(lower, evData)
             eventName = "blizzard"
         elseif titleLower:find("volcano", 1, true) then
             eventName = "volcano"
+        elseif titleLower:find("charybdis", 1, true) then
+            eventName = "charybdis"
         end
 
-        if eventName
-            and lower:find(eventName, 1, true)
-            and lower:find("elemental", 1, true) then
+        if eventName and lower:find(eventName, 1, true) then
+            if evData.isElemental then
+                return lower:find("elemental", 1, true) ~= nil
+            end
             return true
         end
     end
