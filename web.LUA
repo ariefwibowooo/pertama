@@ -74,7 +74,7 @@ local SEP                        = EMOJI_SEPARATOR
 -- ============================================================
 
 local MemberList = {
-    { username = "bowojan821",       display = "TALON",                id = "219002813806673930" },
+    { username = "bowojan821",       display = "TALON",                id = {"219002813806673930", "248297103971975169"} },
     { username = "strawvxntae",      display = "berry",                id = {"1472281518704693349", "219002813806673930"} },
     { username = "aangdul",          display = "Jiikakamulasatu",      id = "248297103971975169" },
     { username = "aangdulre",        display = "VermiOnie",            id = "248297103971975169" },
@@ -228,7 +228,7 @@ local EventImageURL = {
     ["Wintertusk Mammofin"]    = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/WintertuskMammofin.png",
     ["Pyrocoil"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Pyrocoil.png",
     ["CharybdisBossEvent"]      = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/CharybdisBossEvent.png",
-    ["next"]                    = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/NEXT.PNG",
+    ["next"]                    = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/NEXTT.png",
     ["treasure hunt"]           = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/treasure.png",
     ["Crystal"]                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/crystal.png",
     ["Dark Megalodon"]          = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/14.png",
