@@ -166,7 +166,7 @@ end
     "Colossal Shipwreck Crab", "Astrelle", "Moonwake Ray", "Astralune", "Starglass Guardian",
     "Pelagon", "Crimson Dreadtusk", "Riftborn Arowana", "Stormshell Brute", "Pyrocoil",
     "Wintertusk Mammofin", "Ashen Kingfish", "Tribunal Withering Core", "ELEMENTAL HYDRA", "OVERLORD HYDRA",
-    "Everbloom", "Mr Money Bags", "Shellshock X", "VeloByte", "Cenobyte.EXE", "GigaByte", "Jellybeam", "Charybdis",
+    "Everbloom", "Mr Money Bags", "Shellshock X", "VeloByte", "Cenobyte.EXE", "GigaByte", "Jellybeam", "Charybdis", "KOLOR TALON",
 }
 
 local ForgottenList = {
@@ -224,6 +224,7 @@ local MythicFishList = {
 -- Hanya gambar yang memang milik webhook/event khusus yang tetap manual.
 -- Tidak ada lagi daftar URL satu per satu untuk seluruh ikan.
 local EventImageURL = {
+    ["KOLOR TALON"]       = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/KOLOR.png",
     ["Stormshell Brute"]       = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/StormshellBrute.png",
     ["Wintertusk Mammofin"]    = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/WintertuskMammofin.png",
     ["Pyrocoil"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Pyrocoil.png",
