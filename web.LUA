@@ -12,7 +12,7 @@ local Workspace                  = game:GetService("Workspace")
 
 local WEBHOOK_URL                = ""
 local WEBHOOK_STATS              = "" -- NOTE: dipertahankan sebagai fallback URL buat "Check Player On Server"
-                                      -- kalau WEBHOOK_CHECKPLAYER kosong. Embed rekap otomatis "Server Stats"
+                                      -- Kalau WEBHOOK_CHECKPLAYER kosong. Embed rekap otomatis "Server Stats"
                                       -- yang dulu numpang di sini SUDAH DIHAPUS sesuai request.
 local WEBHOOK_FISH               = ""
 local WEBHOOK_EVENT              = ""
