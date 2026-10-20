@@ -61,6 +61,7 @@ local EMOJI_JOIN                 = "<a:join:1549885686843187210>"
 local EMOJI_LEAVE                = "<a:leave:1549885729017044992>"
 local EMOJI_NOTBACK              = "<a:jam:1549886341817434254>"
 local EMOJI_CHECK                = "🔍"
+local EMOJI_TIKTOK               = "<a:tiktok:1562108627056074812>"
 local EMOJI_LOCATION             = "📍"
 local EMOJI_AFK                  = "💤"
 local EMOJI_BLIZZARD             = "❄️"
@@ -1396,7 +1397,7 @@ local function SendPlayerCheckWebhook()
         {},
         nil, nil,
         "Youtube Premium & aplikasi premium lainnya bisa pm ke @ariefwibowooo",
-        { name = "TIKTOK MAIN BARENG GENGZZZ", url = "https://www.tiktok.com/@mainbarenggengz" },
+        { name = EMOJI_TIKTOK .. " TIKTOK MAIN BARENG GENGZZZ " .. EMOJI_TIKTOK, url = "https://www.tiktok.com/@mainbarenggengz" },
         true,
         true
     )
