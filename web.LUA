@@ -589,11 +589,11 @@ local PlayerNameToId  = {}
 local SpawnPointCache = {} -- {name, position} hasil scan folder "!!! SPAWN LOCATIONS"
 
 -- ============================================================
---  AFK / IDLE DETECTION (tidak memancing / gak ada catch selama 1 jam)
+--  AFK / IDLE DETECTION (tidak ada kenaikan Caught selama 10 menit)
 -- ============================================================
 
-local AFK_THRESHOLD_SECONDS  = 3600 -- 1 jam tanpa catch dianggap idle
-local AFK_CHECK_INTERVAL     = 60   -- interval scan pengecekan idle (detik)
+local AFK_THRESHOLD_SECONDS  = 10 * 60  -- 10 menit tanpa kenaikan Caught dianggap AFK
+local AFK_CHECK_INTERVAL     = 1 * 60   -- cek statistik setiap 1 menit
 
 -- ============================================================
 --  SAVE CONFIG
@@ -1492,13 +1492,50 @@ end
 -- ============================================================
 --  AFK / IDLE WEBHOOK SENDER
 --  Dikirim ke webhook JOIN/LEAVE (WEBHOOK_URL) saat player gak
---  ada catch sama sekali selama AFK_THRESHOLD_SECONDS (1 jam).
+--  ada kenaikan Caught selama AFK_THRESHOLD_SECONDS (10 menit).
 -- ============================================================
 
-local function SendAfkWebhook(pName, mentionStr, avatarUrl)
-    SendWebhook(EMOJI_AFK .. " Player Idle Terdeteksi", "Pemain ini kayaknya lagi gak mancing (gak ada catch sama sekali).", TierColors.AFK, {
-        { name = SEP .. " Username", value = "**" .. pName .. "**",                          inline = true },
-        { name = SEP .. " Info",     value = "Tidak ada catch selama **60 menit**",           inline = true },
+local function FormatCaughtNumber(value)
+    local number = tonumber(value)
+    if number == nil then
+        return tostring(value or "Tidak terbaca")
+    end
+
+    local integerText = tostring(math.floor(number))
+    local reversed = string.reverse(integerText)
+    local grouped = string.reverse((reversed:gsub("(%d%d%d)", "%1.")))
+    if string.sub(grouped, 1, 1) == "." then
+        grouped = string.sub(grouped, 2)
+    end
+    if number >= 1000000 then
+        return grouped .. " (M)"
+    elseif number >= 1000 then
+        return grouped .. " (K)"
+    end
+    return grouped
+end
+
+local function SendAfkWebhook(pName, mentionStr, avatarUrl, caughtValue)
+    SendWebhook(EMOJI_AFK .. " Player Idle Terdeteksi", "Jumlah Caught tidak bertambah selama **10 menit**.", TierColors.AFK, {
+        { name = SEP .. " Username",     value = "**" .. pName .. "**", inline = true },
+        { name = SEP .. " Total Caught", value = "**" .. FormatCaughtNumber(caughtValue) .. "**", inline = true },
+        { name = SEP .. " Status",       value = "Tidak ada kenaikan Caught selama **10 menit**", inline = false },
+    }, nil, avatarUrl, mentionStr, "afk")
+end
+
+local function SendFishingResumedWebhook(pName, mentionStr, avatarUrl, caughtValue)
+    SendWebhook("🎣 Player Kembali Memancing", "Cihuyyy caught kembali bertambah, avatar si bro terdeteksi memancing lagi.", TierColors.Join, {
+        { name = SEP .. " Username",     value = "**" .. pName .. "**", inline = true },
+        { name = SEP .. " Total Caught", value = "**" .. FormatCaughtNumber(caughtValue) .. "**", inline = true },
+    }, nil, avatarUrl, mentionStr, "join")
+end
+
+-- Pengingat kedua: dikirim 10 menit setelah notifikasi AFK pertama,
+-- hanya jika player masih di server dan belum kembali menambah Caught.
+local function SendAfkReminderWebhook(pName, mentionStr, avatarUrl, caughtValue)
+    SendWebhook(EMOJI_AFK .. " MASIH BELOM MANCING OIII", "MASIH BELOM MANCING OIII", TierColors.AFK, {
+        { name = SEP .. " Username",     value = "**" .. pName .. "**", inline = true },
+        { name = SEP .. " Total Caught", value = "**" .. FormatCaughtNumber(caughtValue) .. "**", inline = true },
     }, nil, avatarUrl, mentionStr, "afk")
 end
 
@@ -1875,6 +1912,57 @@ end
 --  Notif reset lagi (afkNotified = false) begitu player itu catch lagi.
 -- ============================================================
 
+local function GetCaughtStat(player)
+    if not player then return nil end
+    local names = { "FishCaught", "fishCaught", "Fish Caught", "Caught", "caught" }
+    local candidates = {}
+    local function addFrom(container, recursive)
+        if not container then return end
+        local stat = recursive and FindValueRecursive(container, names) or FindValueByName(container, names)
+        if stat then
+            local ok, value = pcall(function() return tonumber(stat.Value) end)
+            if ok and value ~= nil then
+                -- Jangan menganggap nilai 0 dari satu sumber sebagai nilai final
+                -- jika sumber statistik lain memiliki jumlah tangkapan yang lebih besar.
+                table.insert(candidates, { stat = stat, value = value })
+            end
+        end
+    end
+
+    local statistics = player:FindFirstChild("Statistics")
+    addFrom(statistics, false)
+    addFrom(statistics, true)
+    local ls = player:FindFirstChild("leaderstats")
+    addFrom(ls, false)
+    addFrom(player, true)
+    local folder = Workspace:FindFirstChild(player.Name)
+    addFrom(folder, false)
+    addFrom(folder, true)
+
+    local best, bestValue
+    for _, candidate in ipairs(candidates) do
+        if bestValue == nil or candidate.value > bestValue then
+            best, bestValue = candidate.stat, candidate.value
+        end
+    end
+    return best
+end
+
+local function ReadCaughtValueWithRetry(player, attempts, interval)
+    attempts = attempts or 12
+    interval = interval or 0.75
+    for i = 1, attempts do
+        if not SCRIPT_ACTIVE or not player or not player.Parent then return nil, nil end
+        local stat = GetCaughtStat(player)
+        if stat then
+            local ok, value = pcall(function() return tonumber(stat.Value) end)
+            if ok and value ~= nil then return value, stat end
+        end
+        if i < attempts then task.wait(interval) end
+    end
+    return nil, nil
+end
+
 local function StartAfkMonitor()
     task.spawn(function()
         while SCRIPT_ACTIVE do
@@ -1882,17 +1970,68 @@ local function StartAfkMonitor()
             if not SCRIPT_ACTIVE then break end
 
             local now = os.time()
-            for uid, stats in pairs(PlayerStats) do
-                local baseline = stats.lastCatchTime or stats.joinTime or now
-                if not stats.afkNotified and (now - baseline) >= AFK_THRESHOLD_SECONDS then
-                    stats.afkNotified = true
+            for _, player in ipairs(Players:GetPlayers()) do
+                local uid = player.UserId
+                local stats = PlayerStats[uid]
+                if stats then
+                    stats.name = player.Name
+                    local caughtStat = GetCaughtStat(player)
+                    if caughtStat then
+                        local ok, currentCaught = pcall(function() return tonumber(caughtStat.Value) end)
+                        if ok and currentCaught ~= nil then
+                            local previousCaught = stats.lastCaughtValue
+                            if previousCaught == nil then
+                                -- Baru berhasil membaca stat: mulai hitung idle dari waktu ini.
+                                stats.lastCaughtValue = currentCaught
+                                stats.lastCatchTime = now
+                                stats.caughtStatAvailable = true
+                            else
+                                if currentCaught > previousCaught then
+                                    local wasAfk = stats.afkNotified == true
+                                    stats.lastCatchTime = now
+                                    stats.afkNotified = false
+                                    if wasAfk then
+                                        local pName = player.Name or stats.name or "Unknown"
+                                        local avatarUrl = AvatarCache[uid] or GetAvatarUrlById(uid)
+                                        SendFishingResumedWebhook(pName, GetMention(pName), avatarUrl, tostring(math.floor(currentCaught)))
+                                    end
+                                end
+                                stats.lastCaughtValue = currentCaught
+                                stats.caughtStatAvailable = true
+                            end
+                        end
+                    end
 
-                    local player     = Players:GetPlayerByUserId(uid)
-                    local pName      = (player and player.Name) or stats.name or "Unknown"
-                    local avatarUrl  = AvatarCache[uid] or GetAvatarUrlById(uid)
-                    local mentionStr = GetMention(pName)
+                    -- Hanya kirim AFK jika statistik Caught berhasil dibaca.
+                    -- Jika stat tidak tersedia, hindari false-positive dari deteksi chat lama.
+                    local baseline = stats.lastCatchTime or stats.joinTime or now
+                    if stats.caughtStatAvailable and not stats.afkNotified
+                        and (now - baseline) >= AFK_THRESHOLD_SECONDS then
+                        stats.afkNotified = true
+                        local pName = player.Name or stats.name or "Unknown"
+                        local avatarUrl = AvatarCache[uid] or GetAvatarUrlById(uid)
+                        local mentionStr = GetMention(pName)
+                        SendAfkWebhook(pName, mentionStr, avatarUrl, tostring(math.floor(stats.lastCaughtValue)))
 
-                    SendAfkWebhook(pName, mentionStr, avatarUrl)
+                        -- Tunggu 10 menit setelah webhook AFK pertama. Jika Caught
+                        -- bertambah, player keluar, atau monitoring berhenti, pengingat dibatalkan.
+                        local afkStatsRef = stats
+                        local afkCaughtAtNotice = stats.lastCaughtValue
+                        task.spawn(function()
+                            task.wait(10 * 60)
+                            if not SCRIPT_ACTIVE or not player or not player.Parent then return end
+                            local currentStats = PlayerStats[uid]
+                            if currentStats ~= afkStatsRef or not currentStats.afkNotified then return end
+                            local currentStat = GetCaughtStat(player)
+                            if not currentStat then return end
+                            local ok, currentCaught = pcall(function() return tonumber(currentStat.Value) end)
+                            if not ok or currentCaught == nil then return end
+                            if currentCaught > afkCaughtAtNotice then return end
+                            local reminderName = player.Name or currentStats.name or "Unknown"
+                            local reminderAvatar = AvatarCache[uid] or GetAvatarUrlById(uid)
+                            SendAfkReminderWebhook(reminderName, GetMention(reminderName), reminderAvatar, tostring(math.floor(currentCaught)))
+                        end)
+                    end
                 end
             end
         end
@@ -1910,16 +2049,6 @@ local function CheckAndSend(rawMsg)
     local uid = (targetPlayer and targetPlayer.UserId)
              or PlayerNameToId[string.lower(data.player)]
     local avatarUrl = GetAvatarUrlById(uid)
-
-    if uid then
-        if not PlayerStats[uid] then
-            PlayerStats[uid] = { catchCount = 0, secretList = {}, joinTime = os.time(), name = data.player, lastCatchTime = os.time(), afkNotified = false }
-        end
-        PlayerStats[uid].catchCount = PlayerStats[uid].catchCount + 1
-        -- Ada catch baru -> reset timer idle & flag notifikasi AFK-nya.
-        PlayerStats[uid].lastCatchTime = os.time()
-        PlayerStats[uid].afkNotified   = false
-    end
 
     local legendaryBase = FindLegendaryCrystal(data.fish)
     if legendaryBase then
@@ -2533,7 +2662,7 @@ local function StartMonitoring()
     HookChat()
     StartEventMonitor()
     StartElementalBalancerMonitor()
-    StartAfkMonitor() -- mulai loop deteksi idle/gak mancing (1 jam tanpa catch)
+    StartAfkMonitor() -- mulai loop deteksi AFK (10 menit tanpa kenaikan Caught)
 
     -- Kirim ulang Check Player setiap 2 jam 15 menit selama monitor aktif.
     -- Session token mencegah loop lama hidup kembali setelah monitor dihentikan/dijalankan ulang.
@@ -2551,16 +2680,25 @@ local function StartMonitoring()
     for _, p in ipairs(allPlayers) do
         WatchForFish(p)
         AvatarCache[p.UserId]                       = GetAvatarUrlById(p.UserId)
-        PlayerStats[p.UserId]                       = { catchCount = 0, secretList = {}, joinTime = os.time(), name = p.Name, lastCatchTime = os.time(), afkNotified = false }
+        PlayerStats[p.UserId]                       = { catchCount = 0, secretList = {}, joinTime = os.time(), name = p.Name, lastCatchTime = os.time(), afkNotified = false, lastCaughtValue = nil, caughtStatAvailable = false }
         PlayerNameToId[string.lower(p.Name)]        = p.UserId
         PlayerNameToId[string.lower(p.DisplayName)] = p.UserId
         BuildMentionCache(p.Name, p.DisplayName)
+        task.spawn(function()
+            local caughtValue = ReadCaughtValueWithRetry(p, 12, 0.75)
+            local stats = PlayerStats[p.UserId]
+            if stats and caughtValue ~= nil then
+                stats.lastCaughtValue = caughtValue
+                stats.lastCatchTime = os.time()
+                stats.caughtStatAvailable = true
+            end
+        end)
     end
 
     Players.PlayerAdded:Connect(function(player)
         if not SCRIPT_ACTIVE then return end
         LeaveTimers[player.UserId] = nil
-        PlayerStats[player.UserId] = { catchCount = 0, secretList = {}, joinTime = os.time(), name = player.Name, lastCatchTime = os.time(), afkNotified = false }
+        PlayerStats[player.UserId] = { catchCount = 0, secretList = {}, joinTime = os.time(), name = player.Name, lastCatchTime = os.time(), afkNotified = false, lastCaughtValue = nil, caughtStatAvailable = false }
         PlayerNameToId[string.lower(player.Name)]        = player.UserId
         PlayerNameToId[string.lower(player.DisplayName)] = player.UserId
         BuildMentionCache(player.Name, player.DisplayName)
@@ -2568,9 +2706,35 @@ local function StartMonitoring()
             task.wait(1)
             if not SCRIPT_ACTIVE then return end
             AvatarCache[player.UserId] = GetAvatarUrlById(player.UserId)
+            -- Khusus webhook Join: tunggu sampai Caught awal yang positif terbaca,
+            -- karena nilai 0 bisa muncul sementara data statistik belum selesai direplikasi.
+            -- Tidak mengubah fungsi retry atau logika monitor AFK.
+            local caughtValue = nil
+            local joinRetryDeadline = os.clock() + 30
+            while SCRIPT_ACTIVE and player and player.Parent and os.clock() < joinRetryDeadline do
+                local caughtStat = GetCaughtStat(player)
+                if caughtStat then
+                    local ok, value = pcall(function()
+                        return tonumber(caughtStat.Value)
+                    end)
+                    if ok and value ~= nil and value > 0 then
+                        caughtValue = value
+                        break
+                    end
+                end
+                task.wait(0.75)
+            end
+            local caughtText = caughtValue ~= nil and FormatCaughtNumber(caughtValue) or "N/A (stat belum terbaca)"
+            -- Simpan baseline awal supaya AFK dihitung dari perubahan setelah stat berhasil dibaca.
+            if PlayerStats[player.UserId] and caughtValue ~= nil then
+                PlayerStats[player.UserId].lastCaughtValue = caughtValue
+                PlayerStats[player.UserId].lastCatchTime = os.time()
+                PlayerStats[player.UserId].caughtStatAvailable = true
+            end
             SendWebhook(EMOJI_JOIN .. " Player Joined Server", "welcam", TierColors.Join, {
                 { name = SEP .. " Username",     value = "**" .. player.Name .. "**",                     inline = true },
                 { name = SEP .. " Total Player", value = "**" .. tostring(#Players:GetPlayers()) .. "**", inline = true },
+                { name = SEP .. " Total Caught", value = "**" .. caughtText .. "**", inline = true },
             }, nil, AvatarCache[player.UserId], GetMention(player.Name), "join")
         end)
         WatchForFish(player)
