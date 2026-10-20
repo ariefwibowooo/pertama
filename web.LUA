@@ -12,7 +12,7 @@ local Workspace                  = game:GetService("Workspace")
 
 local WEBHOOK_URL                = ""
 local WEBHOOK_STATS              = "" -- NOTE: dipertahankan sebagai fallback URL buat "Check Player On Server"
-                                      -- Kalau WEBHOOK_CHECKPLAYER kosong. Embed rekap otomatis "Server Stats"
+                                      -- kalau WEBHOOK_CHECKPLAYER kosong. Embed rekap otomatis "Server Stats"
                                       -- yang dulu numpang di sini SUDAH DIHAPUS sesuai request.
 local WEBHOOK_FISH               = ""
 local WEBHOOK_EVENT              = ""
@@ -166,7 +166,7 @@ end
     "Colossal Shipwreck Crab", "Astrelle", "Moonwake Ray", "Astralune", "Starglass Guardian",
     "Pelagon", "Crimson Dreadtusk", "Riftborn Arowana", "Stormshell Brute", "Pyrocoil",
     "Wintertusk Mammofin", "Ashen Kingfish", "Tribunal Withering Core", "ELEMENTAL HYDRA", "OVERLORD HYDRA",
-    "Everbloom", "Mr Money Bags", "Shellshock X", "VeloByte", "Cenobyte.EXE", "GigaByte", "Jellybeam", "Charybdis", "KOLOR TALON",
+    "Everbloom", "Mr Money Bags", "Shellshock X", "VeloByte", "Cenobyte.EXE", "GigaByte", "Jellybeam", "Charybdis",
 }
 
 local ForgottenList = {
@@ -224,12 +224,11 @@ local MythicFishList = {
 -- Hanya gambar yang memang milik webhook/event khusus yang tetap manual.
 -- Tidak ada lagi daftar URL satu per satu untuk seluruh ikan.
 local EventImageURL = {
-    ["KOLOR TALON"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/IniKolor.png",
-    ["Stormshell Brute"]        = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/StormshellBrute.png",
-    ["Wintertusk Mammofin"]     = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/WintertuskMammofin.png",
+    ["Stormshell Brute"]       = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/StormshellBrute.png",
+    ["Wintertusk Mammofin"]    = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/WintertuskMammofin.png",
     ["Pyrocoil"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Pyrocoil.png",
     ["CharybdisBossEvent"]      = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/CharybdisBossEvent.png",
-    ["next"]                    = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/NEXTT.png",
+    ["next"]                    = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/NEXT.PNG",
     ["treasure hunt"]           = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/treasure.png",
     ["Crystal"]                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/crystal.png",
     ["Dark Megalodon"]          = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/14.png",
@@ -1506,30 +1505,6 @@ local _hookedLabels = {}
 local LabelEventState = {}
 
 local function MatchEventText(lower, evData)
-    -- CHARYBDIS SAJA: dibuat lebih toleran terhadap variasi kecil pada
-    -- pengumuman GUI. Logika Storm/Blizzard/Volcano Elemental di bawah
-    -- tidak diubah.
-    if evData.title == "🌪️ Charybdis Boss Dimulai!" then
-        local normalized = tostring(lower or "")
-            :gsub("<[^>]->", " ")
-            :gsub("[%c%z]", " ")
-            :gsub("%s+", " ")
-            :gsub("^%s+", "")
-            :gsub("%s+$", "")
-            :lower()
-
-        if normalized:find("a charybdis has appeared", 1, true)
-            or normalized:find("charybdis has appeared", 1, true)
-            or normalized:find("charybdis boss battle", 1, true)
-            or normalized:find("charybdis boss fight", 1, true)
-            or (normalized:find("charybdis", 1, true)
-                and (normalized:find("appeared", 1, true)
-                    or normalized:find("boss", 1, true))) then
-            return true
-        end
-        return false
-    end
-
     -- Trigger eksplisit dari EventHuntData.
     -- Untuk event Elemental, semua trigger aktif di DB mengandung "elemental",
     -- sehingga kata "storm" saja tidak pernah cukup untuk memicu webhook.
@@ -2540,16 +2515,29 @@ local function StartMonitoring()
     local names      = {}
     for _, p in ipairs(allPlayers) do table.insert(names, p.Name) end
 
+    -- Kirim dua notifikasi awal ke webhook masing-masing:
+    -- Monitor Started memakai webhook Stats (fallback Join/Leave),
+    -- sedangkan Check Player memakai webhook Check Player (fallback Stats lalu Join/Leave).
     SendMonitorStartedWebhook(allPlayers, names)
+    SendPlayerCheckWebhook()
 
     HookChat()
     StartEventMonitor()
     StartElementalBalancerMonitor()
     StartAfkMonitor() -- mulai loop deteksi idle/gak mancing (1 jam tanpa catch)
 
-    -- NOTE: webhook "Check Player On Server" cuma kekirim kalau di-trigger manual
-    -- (klik tombol CHECK PLAYER di panel, atau ketik "!MBG" di chat game).
-    -- Gak ada loop auto-send / rekap otomatis lagi.
+    -- Kirim ulang Check Player setiap 2 jam 15 menit selama monitor aktif.
+    -- Session token mencegah loop lama hidup kembali setelah monitor dihentikan/dijalankan ulang.
+    local checkPlayerSession = MONITOR_SESSION
+    task.spawn(function()
+        while SCRIPT_ACTIVE and MONITOR_SESSION == checkPlayerSession do
+            task.wait(10) -- 2 jam 15 menit
+            if not SCRIPT_ACTIVE or MONITOR_SESSION ~= checkPlayerSession then
+                break
+            end
+            SendPlayerCheckWebhook()
+        end
+    end)
 
     for _, p in ipairs(allPlayers) do
         WatchForFish(p)
