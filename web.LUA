@@ -28,8 +28,8 @@ local EVENT_NOTIF_ENABLED        = true -- toggle ON/OFF khusus notifikasi Event
 local EVENT_COOLDOWN_SECONDS = 3600
 local ROLE_NELAYAN_ID            = "1476331948115755210"
 
-local BRAND_NAME                 = "[TIKTOK MAIN BARENG GENGZZZ](https://www.tiktok.com/@mainbarenggengz)"
-local BRAND_ICON                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/MBG.png"
+local BRAND_NAME                 = "MAIN BARENG GENGZZZ"
+local BRAND_ICON                 = "https://drive.google.com/drive-viewer/AKGpihak0k_0TwtMSfaHWEMvM7PPANThE6hqR02g2AwzIT4yzomN0cCyPd3whrquejZLlduz5AkzCyGZhute_w-qSjm6A1V1JltSyJs=w1672-h892-rw-v1?auditContext=forDisplay"
 local BRAND_FOOTER_TEXT          = "M B G • Server Monitor"
 
 local TierColors = {
@@ -107,7 +107,7 @@ local MemberList = {
     { username = "Rens_1395",        display = "Rens",                 id = "1465026039666184263" },
     { username = "sumeringa",        display = "sumeringa",            id = "697060056163942430" },
     { username = "NolanMcatee",      display = "NolanMKC",             id = "1554445890142478399" },
-    { username = "adultzy03",        display = "Arsya",                id = "1514162263563698226" },
+    { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
     { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
 
 
@@ -1389,20 +1389,20 @@ local function SendPlayerCheckWebhook()
 
     local description = BuildPlayerCheckDescription()
     print("[M B G DEBUG] Deskripsi embed panjangnya " .. tostring(#description) .. " karakter")
+    local checkPlayerEmbed = BuildEmbed(
+        EMOJI_CHECK .. " Check Player On Server OM BEDULLLL ",
+        description,
+        TierColors.Join,
+        {},
+        nil, nil,
+        "Youtube Premium & aplikasi premium lainnya bisa pm ke @ariefwibowooo",
+        { name = "TIKTOK MAIN BARENG GENGZZZ", url = "https://www.tiktok.com/@mainbarenggengz" },
+        true,
+        true
+    )
+    -- Check Player memakai tautan TikTok sebagai author, tanpa foto/avatar/logo.
     PostWebhook(url, {
-        username   = "M B G",
-        avatar_url = WEBHOOK_AVATAR,
-        embeds     = { BuildEmbed(
-            EMOJI_CHECK .. " Check Player On Server OM BEDULLLL " ,
-            description,
-            TierColors.Join,
-            {},
-            nil, nil,
-            "Youtube Premium & aplikasi premium lainnya bisa pm ke @ariefwibowooo",
-            nil,
-            true,
-            true
-        )},
+        embeds = { checkPlayerEmbed },
     })
 end
 
