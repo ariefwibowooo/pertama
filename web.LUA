@@ -1530,15 +1530,6 @@ local function SendFishingResumedWebhook(pName, mentionStr, avatarUrl, caughtVal
     }, nil, avatarUrl, mentionStr, "join")
 end
 
--- Pengingat kedua: dikirim 10 menit setelah notifikasi AFK pertama,
--- hanya jika player masih di server dan belum kembali menambah Caught.
-local function SendAfkReminderWebhook(pName, mentionStr, avatarUrl, caughtValue)
-    SendWebhook(EMOJI_AFK .. " MASIH BELOM MANCING OIII", "MASIH BELOM MANCING OIII", TierColors.AFK, {
-        { name = SEP .. " Username",     value = "**" .. pName .. "**", inline = true },
-        { name = SEP .. " Total Caught", value = "**" .. FormatCaughtNumber(caughtValue) .. "**", inline = true },
-    }, nil, avatarUrl, mentionStr, "afk")
-end
-
 -- ============================================================
 --  EVENT DETECTION
 --  Mekanisme dasar mengikuti Heaven.lua yang sudah terbukti terbaca:
@@ -2007,30 +1998,19 @@ local function StartAfkMonitor()
                     local baseline = stats.lastCatchTime or stats.joinTime or now
                     if stats.caughtStatAvailable and not stats.afkNotified
                         and (now - baseline) >= AFK_THRESHOLD_SECONDS then
+                        -- Baca semula Total Caught tepat sebelum webhook AFK dikirim,
+                        -- agar tidak memakai snapshot lama dari siklus AFK sebelumnya.
+                        local freshCaught = ReadCaughtValueWithRetry(player, 4, 0.25)
+                        if freshCaught ~= nil then
+                            stats.lastCaughtValue = freshCaught
+                        end
+
                         stats.afkNotified = true
                         local pName = player.Name or stats.name or "Unknown"
-                        local avatarUrl = AvatarCache[uid] or GetAvatarUrlById(uid)
+                        local avatarUrl = AvatarCache[uid] or GetAvatarUrlById(player)
                         local mentionStr = GetMention(pName)
-                        SendAfkWebhook(pName, mentionStr, avatarUrl, tostring(math.floor(stats.lastCaughtValue)))
-
-                        -- Tunggu 10 menit setelah webhook AFK pertama. Jika Caught
-                        -- bertambah, player keluar, atau monitoring berhenti, pengingat dibatalkan.
-                        local afkStatsRef = stats
-                        local afkCaughtAtNotice = stats.lastCaughtValue
-                        task.spawn(function()
-                            task.wait(10 * 60)
-                            if not SCRIPT_ACTIVE or not player or not player.Parent then return end
-                            local currentStats = PlayerStats[uid]
-                            if currentStats ~= afkStatsRef or not currentStats.afkNotified then return end
-                            local currentStat = GetCaughtStat(player)
-                            if not currentStat then return end
-                            local ok, currentCaught = pcall(function() return tonumber(currentStat.Value) end)
-                            if not ok or currentCaught == nil then return end
-                            if currentCaught > afkCaughtAtNotice then return end
-                            local reminderName = player.Name or currentStats.name or "Unknown"
-                            local reminderAvatar = AvatarCache[uid] or GetAvatarUrlById(uid)
-                            SendAfkReminderWebhook(reminderName, GetMention(reminderName), reminderAvatar, tostring(math.floor(currentCaught)))
-                        end)
+                        local caughtForWebhook = freshCaught or stats.lastCaughtValue
+                        SendAfkWebhook(pName, mentionStr, avatarUrl, tostring(math.floor(caughtForWebhook)))
                     end
                 end
             end
