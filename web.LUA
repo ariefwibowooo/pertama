@@ -1388,26 +1388,25 @@ local function SendPlayerCheckWebhook()
         return
     end
 
-    local description = BuildPlayerCheckDescription()
+    local playerDescription = BuildPlayerCheckDescription()
+    -- Header TikTok dan judul Check Player sama-sama berada di DESCRIPTION embed.
+    -- Hanya teks nama TikTok yang dibungkus Markdown link; kedua emoji berada di luar link.
+    local tiktokHeader = EMOJI_TIKTOK .. " [TIKTOK MAIN BARENG GENGZZZ](https://www.tiktok.com/@mainbarenggengz) " .. EMOJI_TIKTOK
+    local checkPlayerHeader = EMOJI_CHECK .. " **Check Player On Server OM BEDULLLL**"
+    local description = tiktokHeader .. "\n\n" .. checkPlayerHeader .. "\n\n" .. playerDescription
     print("[M B G DEBUG] Deskripsi embed panjangnya " .. tostring(#description) .. " karakter")
     local checkPlayerEmbed = BuildEmbed(
-        EMOJI_CHECK .. " Check Player On Server OM BEDULLLL ",
+        nil,
         description,
         TierColors.Join,
         {},
         nil, nil,
         "Youtube Premium & aplikasi premium lainnya bisa pm ke @ariefwibowooo",
-        {
-            -- Header TikTok berada DI DALAM embed, tepat di atas judul Check Player.
-            -- Sengaja tanpa icon_url agar tidak muncul foto/logo di samping nama.
-            name = EMOJI_TIKTOK .. " TIKTOK MAIN BARENG GENGZZZ " .. EMOJI_TIKTOK,
-            url = "https://www.tiktok.com/@mainbarenggengz",
-        },
+        nil,
         true,
         true
     )
-    -- BuildEmbed punya fallback author brand; tegaskan author Check Player memakai
-    -- header TikTok di atas, tanpa ikon foto/logo brand dan tanpa message content terpisah.
+    -- Tidak menggunakan author/title untuk header TikTok; semua teks header ada di description.
     PostWebhook(url, {
         embeds = { checkPlayerEmbed },
     })
