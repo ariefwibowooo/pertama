@@ -19,7 +19,7 @@ local WEBHOOK_EVENT              = ""
 local WEBHOOK_MUTASI             = ""
 local WEBHOOK_CHECKPLAYER        = ""
 local WEBHOOK_BALANCER           = ""
-local WEBHOOK_AVATAR             = ""
+local WEBHOOK_AVATAR             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/MBG.png"
 local SCRIPT_ACTIVE              = false
 local MONITOR_SESSION            = 0
 local SCRIPT_TERMINATED          = false
@@ -29,7 +29,7 @@ local EVENT_COOLDOWN_SECONDS = 3600
 local ROLE_NELAYAN_ID            = "1476331948115755210"
 
 local BRAND_NAME                 = "MAIN BARENG GENGZZZ"
-local BRAND_ICON                 = "https://drive.google.com/drive-viewer/AKGpihak0k_0TwtMSfaHWEMvM7PPANThE6hqR02g2AwzIT4yzomN0cCyPd3whrquejZLlduz5AkzCyGZhute_w-qSjm6A1V1JltSyJs=w1672-h892-rw-v1?auditContext=forDisplay"
+local BRAND_ICON                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/MBG.png"
 local BRAND_FOOTER_TEXT          = "M B G • Server Monitor"
 
 local TierColors = {
@@ -108,7 +108,7 @@ local MemberList = {
     { username = "Rens_1395",        display = "Rens",                 id = "1465026039666184263" },
     { username = "sumeringa",        display = "sumeringa",            id = "697060056163942430" },
     { username = "NolanMcatee",      display = "NolanMKC",             id = "1554445890142478399" },
-    { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
+    { username = "adultzy03",        display = "Arsya",                id = "1514162263563698226" },
     { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
 
 
@@ -1397,12 +1397,15 @@ local function SendPlayerCheckWebhook()
         {},
         nil, nil,
         "Youtube Premium & aplikasi premium lainnya bisa pm ke @ariefwibowooo",
-        { name = EMOJI_TIKTOK .. " TIKTOK MAIN BARENG GENGZZZ " .. EMOJI_TIKTOK, url = "https://www.tiktok.com/@mainbarenggengz" },
+        nil,
         true,
         true
     )
-    -- Check Player memakai tautan TikTok sebagai author, tanpa foto/avatar/logo.
+    -- Taruh emoji + tautan TikTok di message content agar Discord merender custom emoji dan Markdown link.
+    -- Nama author embed tidak mendukung Markdown link seperti message content.
+    local tiktokHeader = EMOJI_TIKTOK .. " [TIKTOK MAIN BARENG GENGZZZ](https://www.tiktok.com/@mainbarenggengz) " .. EMOJI_TIKTOK
     PostWebhook(url, {
+        content = tiktokHeader,
         embeds = { checkPlayerEmbed },
     })
 end
