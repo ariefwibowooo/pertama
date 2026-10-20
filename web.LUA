@@ -28,7 +28,7 @@ local EVENT_NOTIF_ENABLED        = true -- toggle ON/OFF khusus notifikasi Event
 local EVENT_COOLDOWN_SECONDS = 3600
 local ROLE_NELAYAN_ID            = "1476331948115755210"
 
-local BRAND_NAME                 = "MAIN BARENG GENGZZZ"
+local BRAND_NAME                 = "[TIKTOK MAIN BARENG GENGZZZ](https://www.tiktok.com/@mainbarenggengz)"
 local BRAND_ICON                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/MBG.png"
 local BRAND_FOOTER_TEXT          = "M B G • Server Monitor"
 
