@@ -29,7 +29,7 @@ local EVENT_COOLDOWN_SECONDS = 3600
 local ROLE_NELAYAN_ID            = "1476331948115755210"
 
 local BRAND_NAME                 = "MAIN BARENG GENGZZZ"
-local BRAND_ICON                 = "https://drive.google.com/drive-viewer/AKGpihak0k_0TwtMSfaHWEMvM7PPANThE6hqR02g2AwzIT4yzomN0cCyPd3whrquejZLlduz5AkzCyGZhute_w-qSjm6A1V1JltSyJs=w1672-h892-rw-v1?auditContext=forDisplay"
+local BRAND_ICON                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/MBG.png"
 local BRAND_FOOTER_TEXT          = "M B G • Server Monitor"
 
 local TierColors = {
@@ -2531,7 +2531,7 @@ local function StartMonitoring()
     local checkPlayerSession = MONITOR_SESSION
     task.spawn(function()
         while SCRIPT_ACTIVE and MONITOR_SESSION == checkPlayerSession do
-            task.wait(10) -- 2 jam 15 menit
+            task.wait(8100) -- 2 jam 15 menit
             if not SCRIPT_ACTIVE or MONITOR_SESSION ~= checkPlayerSession then
                 break
             end
