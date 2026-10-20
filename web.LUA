@@ -29,6 +29,7 @@ local EVENT_COOLDOWN_SECONDS = 3600
 local ROLE_NELAYAN_ID            = "1476331948115755210"
 
 local BRAND_NAME                 = "MAIN BARENG GENGZZZ"
+local BRAND_LINK                 = "https://www.tiktok.com/@mainbarenggengz"
 local BRAND_ICON                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/MBG.png"
 local BRAND_FOOTER_TEXT          = "M B G • Server Monitor"
 
@@ -1203,9 +1204,9 @@ end
 
 local function BrandAuthor()
     if BRAND_ICON ~= "" then
-        return { name = BRAND_NAME, icon_url = BRAND_ICON }
+        return { name = BRAND_NAME, url = BRAND_LINK, icon_url = BRAND_ICON }
     end
-    return { name = BRAND_NAME }
+    return { name = BRAND_NAME, url = BRAND_LINK }
 end
 
 local function BuildEmbed(title, description, color, fields, imageUrl, thumbUrl, footerTag, author, exactFooter, hideTimestamp)
