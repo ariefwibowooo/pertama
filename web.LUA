@@ -1397,15 +1397,18 @@ local function SendPlayerCheckWebhook()
         {},
         nil, nil,
         "Youtube Premium & aplikasi premium lainnya bisa pm ke @ariefwibowooo",
-        nil,
+        {
+            -- Header TikTok berada DI DALAM embed, tepat di atas judul Check Player.
+            -- Sengaja tanpa icon_url agar tidak muncul foto/logo di samping nama.
+            name = EMOJI_TIKTOK .. " TIKTOK MAIN BARENG GENGZZZ " .. EMOJI_TIKTOK,
+            url = "https://www.tiktok.com/@mainbarenggengz",
+        },
         true,
         true
     )
-    -- Taruh emoji + tautan TikTok di message content agar Discord merender custom emoji dan Markdown link.
-    -- Nama author embed tidak mendukung Markdown link seperti message content.
-    local tiktokHeader = EMOJI_TIKTOK .. " [TIKTOK MAIN BARENG GENGZZZ](https://www.tiktok.com/@mainbarenggengz) " .. EMOJI_TIKTOK
+    -- BuildEmbed punya fallback author brand; tegaskan author Check Player memakai
+    -- header TikTok di atas, tanpa ikon foto/logo brand dan tanpa message content terpisah.
     PostWebhook(url, {
-        content = tiktokHeader,
         embeds = { checkPlayerEmbed },
     })
 end
