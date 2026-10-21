@@ -227,7 +227,7 @@ local MythicFishList = {
 -- Tidak ada lagi daftar URL satu per satu untuk seluruh ikan.
 local EventImageURL = {
     ["Stormshell Brute"]        = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/StormshellBrute.png",
-    ["KOLOR TALON"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/IniKolor.png",
+    ["KOLOR TALON"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/testkolor.png",
     ["Wintertusk Mammofin"]     = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/WintertuskMammofin.png",
     ["Pyrocoil"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Pyrocoil.png",
     ["CharybdisBossEvent"]      = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/CharybdisBossEvent.png",
