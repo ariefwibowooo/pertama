@@ -2650,7 +2650,7 @@ local function StartMonitoring()
     local checkPlayerSession = MONITOR_SESSION
     task.spawn(function()
         while SCRIPT_ACTIVE and MONITOR_SESSION == checkPlayerSession do
-            task.wait(8100) -- 2 jam 15 menit
+            task.wait(10800) -- 3 JAM
             if not SCRIPT_ACTIVE or MONITOR_SESSION ~= checkPlayerSession then
                 break
             end
