@@ -1578,7 +1578,7 @@ local function FormatCaughtNumber(value)
 end
 
 local function SendAfkWebhook(pName, mentionStr, avatarUrl, caughtValue)
-    SendWebhook(EMOJI_AFK .. " Player Idle Terdeteksi", "Jumlah Caught tidak bertambah selama **10 menit**.", TierColors.AFK, {
+    SendWebhook(EMOJI_AFK .. " Player AFK Terdeteksi", "Jumlah Caught tidak bertambah selama **10 menit**.", TierColors.AFK, {
         { name = SEP .. " Username",     value = "**" .. pName .. "**", inline = true },
         { name = SEP .. " Total Caught", value = "**" .. FormatCaughtNumber(caughtValue) .. "**", inline = true },
         { name = SEP .. " Status",       value = "Tidak ada kenaikan Caught selama **10 menit**", inline = false },
