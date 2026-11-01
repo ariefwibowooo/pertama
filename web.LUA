@@ -19,7 +19,7 @@ local WEBHOOK_EVENT              = ""
 local WEBHOOK_MUTASI             = ""
 local WEBHOOK_CHECKPLAYER        = ""
 local WEBHOOK_BALANCER           = ""
-local WEBHOOK_AVATAR             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/MBG.png"
+local WEBHOOK_AVATAR             = "http://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/MBGLogo.jpeg"
 local SCRIPT_ACTIVE              = false
 local MONITOR_SESSION            = 0
 local SCRIPT_TERMINATED          = false
@@ -2848,11 +2848,35 @@ local function CreateUI()
     --  FLOATING LOGO INDICATOR
     -- ============================================================
     local floatLogo = Instance.new("ImageButton")
-    floatLogo.Name             = "BloxGankFloatLogo"
+    floatLogo.Name             = "MBGLogo"
     floatLogo.Size             = UDim2.new(0, 68, 0, 68)
     floatLogo.Position         = UDim2.new(0, 20, 0, 90)
     floatLogo.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    floatLogo.Image            = BRAND_ICON
+    -- Roblox ImageButton umumnya tidak bisa menampilkan URL web langsung.
+    -- Coba unduh gambar ke cache executor lalu gunakan custom asset lokal.
+    local logoImage = BRAND_ICON
+    local getAsset = getcustomasset or getsynasset
+    local requestFunc = GetRequestFunc and GetRequestFunc() or nil
+    if getAsset and writefile and requestFunc then
+        local cachePath = "MBGLogo_cache.jpeg"
+        local ok, assetUri = pcall(function()
+            if not (isfile and isfile(cachePath)) then
+                local response = requestFunc({Url = BRAND_ICON, Method = "GET"})
+                if not response or (response.StatusCode and response.StatusCode >= 400)
+                    or type(response.Body) ~= "string" or #response.Body == 0 then
+                    error("Unduhan logo gagal")
+                end
+                writefile(cachePath, response.Body)
+            end
+            return getAsset(cachePath)
+        end)
+        if ok and type(assetUri) == "string" then
+            logoImage = assetUri
+        else
+            warn("[MBG] Logo lokal tidak tersedia; mencoba URL langsung: " .. tostring(assetUri))
+        end
+    end
+    floatLogo.Image            = logoImage
     floatLogo.ScaleType        = Enum.ScaleType.Crop
     floatLogo.BorderSizePixel  = 0
     floatLogo.ZIndex           = 5
