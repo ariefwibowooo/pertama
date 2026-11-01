@@ -19,7 +19,7 @@ local WEBHOOK_EVENT              = ""
 local WEBHOOK_MUTASI             = ""
 local WEBHOOK_CHECKPLAYER        = ""
 local WEBHOOK_BALANCER           = ""
-local WEBHOOK_AVATAR             = "http://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/MBGLogo.jpeg"
+local WEBHOOK_AVATAR             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/MBG.png"
 local SCRIPT_ACTIVE              = false
 local MONITOR_SESSION            = 0
 local SCRIPT_TERMINATED          = false
@@ -247,8 +247,39 @@ local AutoFishDBLower = {}
 local AutoMutationDBLower = {}
 local function GetMutationChance(mutasiName)
     local key = string.lower(tostring(mutasiName or "")):match("^%s*(.-)%s*$") or ""
+
+    -- Big/Shiny adalah atribut ikan, bukan bagian nama mutasi.
+    -- Bersihkan dari input chance agar lookup tetap menemukan key mutasi aslinya.
+    key = (" " .. key .. " ")
+        :gsub("%s+big%s+", " ")
+        :gsub("%s+shiny%s+", " ")
+    key = key:gsub("%s+", " "):match("^%s*(.-)%s*$") or ""
+
     local entry = AutoMutationDBLower[key]
     local chance = entry and tonumber(entry.Chance)
+
+    -- Fallback: cari nama mutasi yang dikenal sebagai kata utuh di key,
+    -- sehingga input seperti "Big Shiny Lightning" tetap mengambil data Lightning.
+    if not chance or chance <= 0 then
+        for mutationKey, mutationEntry in pairs(AutoMutationDBLower) do
+            if type(mutationEntry) == "table" and mutationEntry.Name
+                and type(mutationEntry.Chance) ~= "nil" then
+                local mk = string.lower(tostring(mutationEntry.Name))
+                local startPos = string.find(key, mk, 1, true)
+                if startPos then
+                    local beforeOk = startPos == 1 or key:sub(startPos - 1, startPos - 1) == " "
+                    local afterPos = startPos + #mk
+                    local afterOk = afterPos > #key or key:sub(afterPos, afterPos) == " "
+                    if beforeOk and afterOk then
+                        entry = mutationEntry
+                        chance = tonumber(entry.Chance)
+                        if chance and chance > 0 then break end
+                    end
+                end
+            end
+        end
+    end
+
     if not chance or chance <= 0 then return nil end
     -- Probability.Chance pada data Variant game tersimpan dalam satuan persen.
     local shown = string.format("%.4f", chance):gsub("0+$", ""):gsub("%.$", "")
@@ -830,6 +861,14 @@ end
 -- string kosong sehingga "afterOk" dulu selalu false). Sekarang end-of-string dihitung valid juga.
 local function FindMutasi(fishName)
     local lower = string.lower(fishName)
+
+    -- Abaikan qualifier ukuran/penampilan saat mencari mutasi.
+    -- Jadi "Big Shiny Lightning [Fish]" tetap dicari sebagai Lightning [Fish].
+    -- Hanya hapus kata utuh agar tidak mengubah bagian nama lain.
+    lower = (" " .. lower .. " ")
+        :gsub("%s+big%s+", " ")
+        :gsub("%s+shiny%s+", " ")
+    lower = Trim(lower:gsub("%s+", " "))
 
     -- FIX 6: buang dulu substring nama SPESIES (bukan exact match seluruh nama ikan lagi),
     -- supaya kata mutasi asli (Abyssal/Aurora/Midnight) yang nempel di nama spesies gak
