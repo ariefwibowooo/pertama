@@ -30,7 +30,7 @@ local ROLE_NELAYAN_ID            = "1476331948115755210"
 
 local BRAND_NAME                 = "MAIN BARENG GENGZZZ"
 local BRAND_LINK                 = "https://www.tiktok.com/@mainbarenggengz"
-local BRAND_ICON                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/MBG.png"
+local BRAND_ICON                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/MBGLogo.jpeg"
 local BRAND_FOOTER_TEXT          = "M B G • Server Monitor"
 
 local TierColors = {
@@ -245,6 +245,21 @@ local EventImageURL = {
 local AutoFishDB = {}
 local AutoFishDBLower = {}
 local AutoMutationDBLower = {}
+local function GetMutationChance(mutasiName)
+    local key = string.lower(tostring(mutasiName or "")):match("^%s*(.-)%s*$") or ""
+    local entry = AutoMutationDBLower[key]
+    local chance = entry and tonumber(entry.Chance)
+    if not chance or chance <= 0 then return nil end
+    -- Probability.Chance pada data Variant game tersimpan dalam satuan persen.
+    local shown = string.format("%.4f", chance):gsub("0+$", ""):gsub("%.$", "")
+    return shown .. "%"
+end
+
+local function FormatMutationLabel(mutasiName)
+    if not mutasiName then return "—" end
+    local chanceText = GetMutationChance(mutasiName)
+    return chanceText and (mutasiName .. " (" .. chanceText .. ")") or mutasiName
+end
 
 -- Sesuai request: dua Withering Core ini tetap manual dan tidak diklasifikasikan
 -- otomatis dari Tier game.
@@ -288,7 +303,10 @@ local function RegisterAutoMutation(data)
     if tostring(data.Data.Type) ~= "Variant" then return end
     local name = tostring(data.Data.Name)
     local lower = NormalizeName(name)
-    if lower ~= "" then AutoMutationDBLower[lower] = name end
+    if lower ~= "" then
+        local chance = type(data.Probability) == "table" and tonumber(data.Probability.Chance) or nil
+        AutoMutationDBLower[lower] = { Name = name, Chance = chance }
+    end
 end
 
 local function ScanModuleContainer(container)
@@ -832,8 +850,10 @@ local function FindMutasi(fishName)
     if lower == "" then return nil end
 
     local mutationNames = {}
-    for _, mutasiName in pairs(AutoMutationDBLower) do
-        table.insert(mutationNames, mutasiName)
+    for _, entry in pairs(AutoMutationDBLower) do
+        if type(entry) == "table" and entry.Name then
+            table.insert(mutationNames, entry.Name)
+        end
     end
     for _, mutasiName in ipairs(MutasiFallbackList) do
         table.insert(mutationNames, mutasiName)
@@ -2076,7 +2096,7 @@ local function CheckAndSend(rawMsg)
             PlayerStats[uid].secretList[baseName] = (PlayerStats[uid].secretList[baseName] or 0) + 1
         end
         local chanceInfo  = GetFishChance(baseName)
-        local mutasiField = mutasi and (EMOJI_MUTASI .. " *" .. mutasi .. "*") or "—"
+        local mutasiField = mutasi and (EMOJI_MUTASI .. " *" .. FormatMutationLabel(mutasi) .. "*") or "—"
         local fields = {
             { name = SEP .. " Pemain", value = "**" .. GetVerifiedName(data.player) .. "**", inline = true },
             { name = SEP .. " Ikan",   value = "**" .. data.fish .. "**",   inline = true },
@@ -2106,7 +2126,7 @@ local function CheckAndSend(rawMsg)
             { name = SEP .. " Pemain", value = "**" .. GetVerifiedName(data.player) .. "**",            inline = true },
             { name = SEP .. " Ikan",   value = "**" .. data.fish .. "**",              inline = true },
             { name = SEP .. " Berat",  value = "**" .. data.weight .. "**",            inline = true },
-            { name = SEP .. " Mutasi", value = EMOJI_MUTASI .. " " .. mutasiDetected,  inline = true },
+            { name = SEP .. " Mutasi", value = EMOJI_MUTASI .. " " .. FormatMutationLabel(mutasiDetected),  inline = true },
         },
         nil, avatarUrl, nil, "mutasi"
     )
@@ -2804,7 +2824,7 @@ local function CreateUI()
     topBarFix.BackgroundColor3 = Color3.fromRGB(30, 30, 30); topBarFix.BorderSizePixel = 0; topBarFix.Parent = topBar
 
     local title = Instance.new("TextLabel")
-    title.Text = "🎣 Main Bareng Gengz Monitor"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
+    title.Text = "🎣 Main Bareng Gengz Monitor (1 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
     title.BackgroundTransparency = 1; title.TextColor3 = Color3.fromRGB(255, 255, 255)
     title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left; title.Parent = topBar
 
@@ -2829,7 +2849,7 @@ local function CreateUI()
     -- ============================================================
     local floatLogo = Instance.new("ImageButton")
     floatLogo.Name             = "BloxGankFloatLogo"
-    floatLogo.Size             = UDim2.new(0, 46, 0, 46)
+    floatLogo.Size             = UDim2.new(0, 68, 0, 68)
     floatLogo.Position         = UDim2.new(0, 20, 0, 90)
     floatLogo.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     floatLogo.Image            = BRAND_ICON
@@ -2837,7 +2857,7 @@ local function CreateUI()
     floatLogo.BorderSizePixel  = 0
     floatLogo.ZIndex           = 5
     floatLogo.Parent           = gui
-    Instance.new("UICorner", floatLogo).CornerRadius = UDim.new(1, 0)
+    Instance.new("UICorner", floatLogo).CornerRadius = UDim.new(0, 7)
 
     local floatStroke = Instance.new("UIStroke")
     floatStroke.Color     = Color3.fromRGB(50, 50, 50)
@@ -2845,8 +2865,8 @@ local function CreateUI()
     floatStroke.Parent    = floatLogo
 
     local floatStatusDot = Instance.new("Frame")
-    floatStatusDot.Size             = UDim2.new(0, 14, 0, 14)
-    floatStatusDot.Position         = UDim2.new(1, -14, 1, -14)
+    floatStatusDot.Size             = UDim2.new(0, 18, 0, 18)
+    floatStatusDot.Position         = UDim2.new(1, -18, 1, -18)
     floatStatusDot.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
     floatStatusDot.BorderSizePixel  = 0
     floatStatusDot.ZIndex           = 6
