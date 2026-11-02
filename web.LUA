@@ -1454,7 +1454,7 @@ local function SendPlayerCheckWebhook()
     local playerDescription = BuildPlayerCheckDescription()
     -- Header TikTok dan judul Check Player sama-sama berada di DESCRIPTION embed.
     -- Hanya teks nama TikTok yang dibungkus Markdown link; kedua emoji berada di luar link.
-    local tiktokHeader = "# " .. EMOJI_TIKTOK .. " [TIKTOK M - B - G](https://www.tiktok.com/@mainbarenggengz) " .. EMOJI_TIKTOK
+    local tiktokHeader = "# " .. EMOJI_TIKTOK .. " [TIKTOK   M - B - G](https://www.tiktok.com/@mainbarenggengz) " .. EMOJI_TIKTOK
     local checkPlayerHeader = EMOJI_CHECK .. " **Check Player On Server OM BEDULLLL**"
     local description = tiktokHeader .. "\n\n" .. checkPlayerHeader .. "\n\n" .. playerDescription
     print("[M B G DEBUG] Deskripsi embed panjangnya " .. tostring(#description) .. " karakter")
