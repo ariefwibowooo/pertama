@@ -1473,6 +1473,7 @@ local function SendPlayerCheckWebhook()
     -- Header TikTok dan judul Check Player tetap berada di description.
     checkPlayerEmbed.author = nil
     PostWebhook(url, {
+        flags  = 4096, -- SUPPRESS_NOTIFICATIONS: minta pesan dikirim tanpa notifikasi
         embeds = { checkPlayerEmbed },
     })
 end
@@ -2863,7 +2864,7 @@ local function CreateUI()
     topBarFix.BackgroundColor3 = Color3.fromRGB(30, 30, 30); topBarFix.BorderSizePixel = 0; topBarFix.Parent = topBar
 
     local title = Instance.new("TextLabel")
-    title.Text = "🎣 Main Bareng Gengz Monitor (2 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
+    title.Text = "🎣 Main Bareng Gengz Monitor (4 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
     title.BackgroundTransparency = 1; title.TextColor3 = Color3.fromRGB(255, 255, 255)
     title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left; title.Parent = topBar
 
