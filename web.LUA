@@ -82,8 +82,8 @@ local MemberList = {
     { username = "aangdulre",        display = "VermiOnie",            id = "248297103971975169" },
     { username = "Yokatsusu",        display = "Yoka",                 id = "1393227652806086676" },
     { username = "CoklatttSusuuuu",  display = "Yokanyawit",           id = "1393227652806086676" },
-    { username = "starryipi",        display = "ipii",                 id = "1318926237963391017" },
-    { username = "Chihiro_Lily",     display = "Ivy",                  id = "1318926237963391017" },
+    { username = "starryipi",        display = "ipii",                 id = {"1318926237963391017", "219002813806673930"} },
+    { username = "Chihiro_Lily",     display = "Ivy",                  id = {"1318926237963391017", "219002813806673930"} },
     { username = "konagaa",          display = "konagaa",              id = "573600670741954568" },
     { username = "heartymatcha1511", display = "gadis",                id = "760811175503593474" },
     { username = "Mahafii_11",       display = "Yunno",                id = "1032602143363960833" },
@@ -2870,7 +2870,7 @@ local function CreateUI()
     topBarFix.BackgroundColor3 = Color3.fromRGB(30, 30, 30); topBarFix.BorderSizePixel = 0; topBarFix.Parent = topBar
 
     local title = Instance.new("TextLabel")
-    title.Text = "🎣 Main Bareng Gengz Monitor (4 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
+    title.Text = "🎣 Main Bareng Gengz Monitor (10 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
     title.BackgroundTransparency = 1; title.TextColor3 = Color3.fromRGB(255, 255, 255)
     title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left; title.Parent = topBar
 
