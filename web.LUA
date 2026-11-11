@@ -113,7 +113,7 @@ local MemberList = {
     { username = "Aris_syam",        display = "ARIS",                 id = "219002813806673930" },
     { username = "yann02026",        display = "Yann",                 id = "1477349802483257404" },
     { username = "makin2545",        display = "makin2545",            id = "1132125111508541493" },
-    { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
+    { username = "naurakori54",      display = "MICO",                 id = "444135915636391939" },
     { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
     { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
     { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
@@ -2870,7 +2870,7 @@ local function CreateUI()
     topBarFix.BackgroundColor3 = Color3.fromRGB(30, 30, 30); topBarFix.BorderSizePixel = 0; topBarFix.Parent = topBar
 
     local title = Instance.new("TextLabel")
-    title.Text = "🎣 Main Bareng Gengz Monitor (10 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
+    title.Text = "🎣 Main Bareng Gengz Monitor (12 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
     title.BackgroundTransparency = 1; title.TextColor3 = Color3.fromRGB(255, 255, 255)
     title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left; title.Parent = topBar
 
