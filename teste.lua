@@ -11,6 +11,7 @@ local TweenService               = game:GetService("TweenService")
 local Workspace                  = game:GetService("Workspace")
 
 local WEBHOOK_URL                = ""
+local SERVER_NAME                = "GADISSSSS" -- Nama server cukup diubah dari sini
 local WEBHOOK_STATS              = "" -- NOTE: dipertahankan sebagai fallback URL buat "Check Player On Server"
                                       -- kalau WEBHOOK_CHECKPLAYER kosong. Embed rekap otomatis "Server Stats"
                                       -- yang dulu numpang di sini SUDAH DIHAPUS sesuai request.
@@ -30,7 +31,7 @@ local ROLE_NELAYAN_ID            = "1476331948115755210"
 
 local BRAND_NAME                 = "MAIN BARENG GENGZZZ"
 local BRAND_LINK                 = "https://www.tiktok.com/@mainbarenggengz"
-local BRAND_ICON                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/MBG.png"
+local BRAND_ICON                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/MBGLogo.jpeg"
 local BRAND_FOOTER_TEXT          = "M B G • Server Monitor"
 
 local TierColors = {
@@ -82,8 +83,8 @@ local MemberList = {
     { username = "aangdulre",        display = "VermiOnie",            id = "248297103971975169" },
     { username = "Yokatsusu",        display = "Yoka",                 id = "1393227652806086676" },
     { username = "CoklatttSusuuuu",  display = "Yokanyawit",           id = "1393227652806086676" },
-    { username = "starryipi",        display = "ipii",                 id = "1318926237963391017" },
-    { username = "Chihiro_Lily",     display = "Ivy",                  id = "1318926237963391017" },
+    { username = "starryipi",        display = "ipii",                 id = {"1318926237963391017", "219002813806673930"} },
+    { username = "Chihiro_Lily",     display = "Ivy",                  id = {"1318926237963391017", "219002813806673930"} },
     { username = "konagaa",          display = "konagaa",              id = "573600670741954568" },
     { username = "heartymatcha1511", display = "gadis",                id = "760811175503593474" },
     { username = "Mahafii_11",       display = "Yunno",                id = "1032602143363960833" },
@@ -110,7 +111,15 @@ local MemberList = {
     { username = "sumeringa",        display = "sumeringa",            id = "697060056163942430" },
     { username = "NolanMcatee",      display = "NolanMKC",             id = "1554445890142478399" },
     { username = "adultzy03",        display = "Arsya",                id = "1514162263563698226" },
+    { username = "Aris_syam",        display = "ARIS",                 id = "219002813806673930" },
+    { username = "yann02026",        display = "Yann",                 id = "1477349802483257404" },
+    { username = "makin2545",        display = "makin2545",            id = "1132125111508541493" },
+    { username = "naurakori54",      display = "MICO",                 id = "444135915636391939" },
+    { username = "Pacarparksungjin", display = "NIA",                  id = "1132125111508541493" },
     { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
+    { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
+    { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
+
 
 
 }
@@ -168,7 +177,7 @@ end
     "Colossal Shipwreck Crab", "Astrelle", "Moonwake Ray", "Astralune", "Starglass Guardian",
     "Pelagon", "Crimson Dreadtusk", "Riftborn Arowana", "Stormshell Brute", "Pyrocoil",
     "Wintertusk Mammofin", "Ashen Kingfish", "Tribunal Withering Core", "ELEMENTAL HYDRA", "OVERLORD HYDRA",
-    "Everbloom", "Mr Money Bags", "Shellshock X", "VeloByte", "Cenobyte.EXE", "GigaByte", "Jellybeam", "Charybdis",
+    "Everbloom", "Mr Money Bags", "Shellshock X", "VeloByte", "Cenobyte.EXE", "GigaByte", "Jellybeam", "Charybdis", "KOLOR TALON",
 }
 
 local ForgottenList = {
@@ -226,11 +235,12 @@ local MythicFishList = {
 -- Hanya gambar yang memang milik webhook/event khusus yang tetap manual.
 -- Tidak ada lagi daftar URL satu per satu untuk seluruh ikan.
 local EventImageURL = {
-    ["Stormshell Brute"]       = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/StormshellBrute.png",
-    ["Wintertusk Mammofin"]    = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/WintertuskMammofin.png",
+    ["Stormshell Brute"]        = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/StormshellBrute.png",
+    ["KOLOR TALON"]             = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/testkolor.png",
+    ["Wintertusk Mammofin"]     = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/WintertuskMammofin.png",
     ["Pyrocoil"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Pyrocoil.png",
     ["CharybdisBossEvent"]      = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/CharybdisBossEvent.png",
-    ["next"]                    = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/NEXT.PNG",
+    ["next"]                    = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/NEXTT.png",
     ["treasure hunt"]           = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/treasure.png",
     ["Crystal"]                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/crystal.png",
     ["Dark Megalodon"]          = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/14.png",
@@ -242,6 +252,52 @@ local EventImageURL = {
 local AutoFishDB = {}
 local AutoFishDBLower = {}
 local AutoMutationDBLower = {}
+local function GetMutationChance(mutasiName)
+    local key = string.lower(tostring(mutasiName or "")):match("^%s*(.-)%s*$") or ""
+
+    -- Big/Shiny adalah atribut ikan, bukan bagian nama mutasi.
+    -- Bersihkan dari input chance agar lookup tetap menemukan key mutasi aslinya.
+    key = (" " .. key .. " ")
+        :gsub("%s+big%s+", " ")
+        :gsub("%s+shiny%s+", " ")
+    key = key:gsub("%s+", " "):match("^%s*(.-)%s*$") or ""
+
+    local entry = AutoMutationDBLower[key]
+    local chance = entry and tonumber(entry.Chance)
+
+    -- Fallback: cari nama mutasi yang dikenal sebagai kata utuh di key,
+    -- sehingga input seperti "Big Shiny Lightning" tetap mengambil data Lightning.
+    if not chance or chance <= 0 then
+        for mutationKey, mutationEntry in pairs(AutoMutationDBLower) do
+            if type(mutationEntry) == "table" and mutationEntry.Name
+                and type(mutationEntry.Chance) ~= "nil" then
+                local mk = string.lower(tostring(mutationEntry.Name))
+                local startPos = string.find(key, mk, 1, true)
+                if startPos then
+                    local beforeOk = startPos == 1 or key:sub(startPos - 1, startPos - 1) == " "
+                    local afterPos = startPos + #mk
+                    local afterOk = afterPos > #key or key:sub(afterPos, afterPos) == " "
+                    if beforeOk and afterOk then
+                        entry = mutationEntry
+                        chance = tonumber(entry.Chance)
+                        if chance and chance > 0 then break end
+                    end
+                end
+            end
+        end
+    end
+
+    if not chance or chance <= 0 then return nil end
+    -- Probability.Chance pada data Variant game tersimpan dalam satuan persen.
+    local shown = string.format("%.4f", chance):gsub("0+$", ""):gsub("%.$", "")
+    return shown .. "%"
+end
+
+local function FormatMutationLabel(mutasiName)
+    if not mutasiName then return "—" end
+    local chanceText = GetMutationChance(mutasiName)
+    return chanceText and (mutasiName .. " (" .. chanceText .. ")") or mutasiName
+end
 
 -- Sesuai request: dua Withering Core ini tetap manual dan tidak diklasifikasikan
 -- otomatis dari Tier game.
@@ -285,7 +341,10 @@ local function RegisterAutoMutation(data)
     if tostring(data.Data.Type) ~= "Variant" then return end
     local name = tostring(data.Data.Name)
     local lower = NormalizeName(name)
-    if lower ~= "" then AutoMutationDBLower[lower] = name end
+    if lower ~= "" then
+        local chance = type(data.Probability) == "table" and tonumber(data.Probability.Chance) or nil
+        AutoMutationDBLower[lower] = { Name = name, Chance = chance }
+    end
 end
 
 local function ScanModuleContainer(container)
@@ -589,11 +648,11 @@ local PlayerNameToId  = {}
 local SpawnPointCache = {} -- {name, position} hasil scan folder "!!! SPAWN LOCATIONS"
 
 -- ============================================================
---  AFK / IDLE DETECTION (tidak memancing / gak ada catch selama 1 jam)
+--  AFK / IDLE DETECTION (tidak ada kenaikan Caught selama 10 menit)
 -- ============================================================
 
-local AFK_THRESHOLD_SECONDS  = 5 * 60   -- TEST: 5 menit tanpa kenaikan Caught dianggap idle
-local AFK_CHECK_INTERVAL     = 2 * 60   -- cek statistik setiap 2 menit
+local AFK_THRESHOLD_SECONDS  = 10 * 60  -- 10 menit tanpa kenaikan Caught dianggap AFK
+local AFK_CHECK_INTERVAL     = 1 * 60   -- cek statistik setiap 1 menit
 
 -- ============================================================
 --  SAVE CONFIG
@@ -810,6 +869,14 @@ end
 local function FindMutasi(fishName)
     local lower = string.lower(fishName)
 
+    -- Abaikan qualifier ukuran/penampilan saat mencari mutasi.
+    -- Jadi "Big Shiny Lightning [Fish]" tetap dicari sebagai Lightning [Fish].
+    -- Hanya hapus kata utuh agar tidak mengubah bagian nama lain.
+    lower = (" " .. lower .. " ")
+        :gsub("%s+big%s+", " ")
+        :gsub("%s+shiny%s+", " ")
+    lower = Trim(lower:gsub("%s+", " "))
+
     -- FIX 6: buang dulu substring nama SPESIES (bukan exact match seluruh nama ikan lagi),
     -- supaya kata mutasi asli (Abyssal/Aurora/Midnight) yang nempel di nama spesies gak
     -- ketauan sebagai mutasi, TAPI kata di depan/belakangnya (mutasi beneran, mis. "Stone",
@@ -829,8 +896,10 @@ local function FindMutasi(fishName)
     if lower == "" then return nil end
 
     local mutationNames = {}
-    for _, mutasiName in pairs(AutoMutationDBLower) do
-        table.insert(mutationNames, mutasiName)
+    for _, entry in pairs(AutoMutationDBLower) do
+        if type(entry) == "table" and entry.Name then
+            table.insert(mutationNames, entry.Name)
+        end
     end
     for _, mutasiName in ipairs(MutasiFallbackList) do
         table.insert(mutationNames, mutasiName)
@@ -1322,7 +1391,7 @@ local function SendMonitorStartedWebhook(allPlayers, names)
             "Server monitor sudah aktif",
             TierColors.Join,
             {
-                { name = SEP .. " Server",  value = "BANG DUL",                    inline = true },
+                { name = SEP .. " Server",  value = SERVER_NAME,                    inline = true },
                 { name = SEP .. " Total Player", value = "**" .. tostring(#allPlayers) .. "** orang", inline = true },
                 { name = SEP .. " Daftar Player", value = "```\n" .. table.concat(names, ", ") .. "```", inline = false },
             }
@@ -1392,8 +1461,8 @@ local function SendPlayerCheckWebhook()
     local playerDescription = BuildPlayerCheckDescription()
     -- Header TikTok dan judul Check Player sama-sama berada di DESCRIPTION embed.
     -- Hanya teks nama TikTok yang dibungkus Markdown link; kedua emoji berada di luar link.
-    local tiktokHeader = "# " .. EMOJI_TIKTOK .. " [TIKTOK MAIN BARENG GENGZZZ](https://www.tiktok.com/@mainbarenggengz) " .. EMOJI_TIKTOK
-    local checkPlayerHeader = EMOJI_CHECK .. " **Check Player On Server OM BEDULLLL**"
+    local tiktokHeader = "# " .. EMOJI_TIKTOK .. " [TIKTOK   M - B - G](https://www.tiktok.com/@mainbarenggengz) " .. EMOJI_TIKTOK
+    local checkPlayerHeader = EMOJI_CHECK .. " **Check Player On Server " .. SERVER_NAME .. "**"
     local description = tiktokHeader .. "\n\n" .. checkPlayerHeader .. "\n\n" .. playerDescription
     print("[M B G DEBUG] Deskripsi embed panjangnya " .. tostring(#description) .. " karakter")
     local checkPlayerEmbed = BuildEmbed(
@@ -1402,7 +1471,7 @@ local function SendPlayerCheckWebhook()
         TierColors.Join,
         {},
         nil, nil,
-        "Youtube Premium & aplikasi premium lainnya bisa pm ke @ariefwibowooo",
+        "Youtube Premium & Aplikasi Premium lainnya bisa order di @ariefwibowooo",
         nil,
         true,
         true
@@ -1411,6 +1480,7 @@ local function SendPlayerCheckWebhook()
     -- Header TikTok dan judul Check Player tetap berada di description.
     checkPlayerEmbed.author = nil
     PostWebhook(url, {
+        flags  = 4096, -- SUPPRESS_NOTIFICATIONS: minta pesan dikirim tanpa notifikasi
         embeds = { checkPlayerEmbed },
     })
 end
@@ -1473,7 +1543,7 @@ local function SendEventWebhook(eventData, rawText)
             eventData.description,
             eventData.color,
             {
-                { name = SEP .. " Server",  value = "BANG DUL",              inline = true },
+                { name = SEP .. " Server",  value = SERVER_NAME,              inline = true },
                 { name = SEP .. " Total Player", value = "**" .. tostring(#Players:GetPlayers()) .. "** orang", inline = true },
                 { name = SEP .. " Berakhir Pada", value = "<t:" .. tostring(endTime) .. ":R>", inline = true },
             },
@@ -1492,7 +1562,7 @@ end
 -- ============================================================
 --  AFK / IDLE WEBHOOK SENDER
 --  Dikirim ke webhook JOIN/LEAVE (WEBHOOK_URL) saat player gak
---  ada catch sama sekali selama AFK_THRESHOLD_SECONDS (1 jam).
+--  ada kenaikan Caught selama AFK_THRESHOLD_SECONDS (10 menit).
 -- ============================================================
 
 local function FormatCaughtNumber(value)
@@ -1516,10 +1586,10 @@ local function FormatCaughtNumber(value)
 end
 
 local function SendAfkWebhook(pName, mentionStr, avatarUrl, caughtValue)
-    SendWebhook(EMOJI_AFK .. " Player Idle Terdeteksi", "Jumlah Caught tidak bertambah selama **5 menit**.", TierColors.AFK, {
+    SendWebhook(EMOJI_AFK .. " Player AFK Terdeteksi", "Jumlah Caught tidak bertambah selama **10 menit**.", TierColors.AFK, {
         { name = SEP .. " Username",     value = "**" .. pName .. "**", inline = true },
         { name = SEP .. " Total Caught", value = "**" .. FormatCaughtNumber(caughtValue) .. "**", inline = true },
-        { name = SEP .. " Status",       value = "Tidak ada kenaikan Caught selama **5 menit**", inline = false },
+        { name = SEP .. " Status",       value = "Tidak ada kenaikan Caught selama **10 menit**", inline = false },
     }, nil, avatarUrl, mentionStr, "afk")
 end
 
@@ -1998,11 +2068,19 @@ local function StartAfkMonitor()
                     local baseline = stats.lastCatchTime or stats.joinTime or now
                     if stats.caughtStatAvailable and not stats.afkNotified
                         and (now - baseline) >= AFK_THRESHOLD_SECONDS then
+                        -- Baca semula Total Caught tepat sebelum webhook AFK dikirim,
+                        -- agar tidak memakai snapshot lama dari siklus AFK sebelumnya.
+                        local freshCaught = ReadCaughtValueWithRetry(player, 4, 0.25)
+                        if freshCaught ~= nil then
+                            stats.lastCaughtValue = freshCaught
+                        end
+
                         stats.afkNotified = true
                         local pName = player.Name or stats.name or "Unknown"
-                        local avatarUrl = AvatarCache[uid] or GetAvatarUrlById(uid)
+                        local avatarUrl = AvatarCache[uid] or GetAvatarUrlById(player)
                         local mentionStr = GetMention(pName)
-                        SendAfkWebhook(pName, mentionStr, avatarUrl, tostring(math.floor(stats.lastCaughtValue)))
+                        local caughtForWebhook = freshCaught or stats.lastCaughtValue
+                        SendAfkWebhook(pName, mentionStr, avatarUrl, tostring(math.floor(caughtForWebhook)))
                     end
                 end
             end
@@ -2065,7 +2143,7 @@ local function CheckAndSend(rawMsg)
             PlayerStats[uid].secretList[baseName] = (PlayerStats[uid].secretList[baseName] or 0) + 1
         end
         local chanceInfo  = GetFishChance(baseName)
-        local mutasiField = mutasi and (EMOJI_MUTASI .. " *" .. mutasi .. "*") or "—"
+        local mutasiField = mutasi and (EMOJI_MUTASI .. " *" .. FormatMutationLabel(mutasi) .. "*") or "—"
         local fields = {
             { name = SEP .. " Pemain", value = "**" .. GetVerifiedName(data.player) .. "**", inline = true },
             { name = SEP .. " Ikan",   value = "**" .. data.fish .. "**",   inline = true },
@@ -2095,7 +2173,7 @@ local function CheckAndSend(rawMsg)
             { name = SEP .. " Pemain", value = "**" .. GetVerifiedName(data.player) .. "**",            inline = true },
             { name = SEP .. " Ikan",   value = "**" .. data.fish .. "**",              inline = true },
             { name = SEP .. " Berat",  value = "**" .. data.weight .. "**",            inline = true },
-            { name = SEP .. " Mutasi", value = EMOJI_MUTASI .. " " .. mutasiDetected,  inline = true },
+            { name = SEP .. " Mutasi", value = EMOJI_MUTASI .. " " .. FormatMutationLabel(mutasiDetected),  inline = true },
         },
         nil, avatarUrl, nil, "mutasi"
     )
@@ -2547,7 +2625,7 @@ local function SendElementalBalancerWebhook(isBalanced, fire, frozen, storm)
                     },
                     {
                         name = SEP .. " SERVER",
-                        value = "**BANG DUL**",
+                        value = "**" .. SERVER_NAME .. "**",
                         inline = true,
                     },
                 },
@@ -2634,14 +2712,14 @@ local function StartMonitoring()
     HookChat()
     StartEventMonitor()
     StartElementalBalancerMonitor()
-    StartAfkMonitor() -- mulai loop deteksi idle/gak mancing (1 jam tanpa catch)
+    StartAfkMonitor() -- mulai loop deteksi AFK (10 menit tanpa kenaikan Caught)
 
     -- Kirim ulang Check Player setiap 2 jam 15 menit selama monitor aktif.
     -- Session token mencegah loop lama hidup kembali setelah monitor dihentikan/dijalankan ulang.
     local checkPlayerSession = MONITOR_SESSION
     task.spawn(function()
         while SCRIPT_ACTIVE and MONITOR_SESSION == checkPlayerSession do
-            task.wait(8100) -- 2 jam 15 menit
+            task.wait(10800) -- 3 JAM
             if not SCRIPT_ACTIVE or MONITOR_SESSION ~= checkPlayerSession then
                 break
             end
@@ -2793,7 +2871,7 @@ local function CreateUI()
     topBarFix.BackgroundColor3 = Color3.fromRGB(30, 30, 30); topBarFix.BorderSizePixel = 0; topBarFix.Parent = topBar
 
     local title = Instance.new("TextLabel")
-    title.Text = "🎣 Main Bareng Gengz Monitor"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
+    title.Text = "🎣 Main Bareng Gengz Monitor (12 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
     title.BackgroundTransparency = 1; title.TextColor3 = Color3.fromRGB(255, 255, 255)
     title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left; title.Parent = topBar
 
@@ -2817,16 +2895,40 @@ local function CreateUI()
     --  FLOATING LOGO INDICATOR
     -- ============================================================
     local floatLogo = Instance.new("ImageButton")
-    floatLogo.Name             = "BloxGankFloatLogo"
-    floatLogo.Size             = UDim2.new(0, 46, 0, 46)
+    floatLogo.Name             = "MBGLogo"
+    floatLogo.Size             = UDim2.new(0, 68, 0, 68)
     floatLogo.Position         = UDim2.new(0, 20, 0, 90)
     floatLogo.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    floatLogo.Image            = BRAND_ICON
+    -- Roblox ImageButton umumnya tidak bisa menampilkan URL web langsung.
+    -- Coba unduh gambar ke cache executor lalu gunakan custom asset lokal.
+    local logoImage = BRAND_ICON
+    local getAsset = getcustomasset or getsynasset
+    local requestFunc = GetRequestFunc and GetRequestFunc() or nil
+    if getAsset and writefile and requestFunc then
+        local cachePath = "MBGLogo_cache.jpeg"
+        local ok, assetUri = pcall(function()
+            if not (isfile and isfile(cachePath)) then
+                local response = requestFunc({Url = BRAND_ICON, Method = "GET"})
+                if not response or (response.StatusCode and response.StatusCode >= 400)
+                    or type(response.Body) ~= "string" or #response.Body == 0 then
+                    error("Unduhan logo gagal")
+                end
+                writefile(cachePath, response.Body)
+            end
+            return getAsset(cachePath)
+        end)
+        if ok and type(assetUri) == "string" then
+            logoImage = assetUri
+        else
+            warn("[MBG] Logo lokal tidak tersedia; mencoba URL langsung: " .. tostring(assetUri))
+        end
+    end
+    floatLogo.Image            = logoImage
     floatLogo.ScaleType        = Enum.ScaleType.Crop
     floatLogo.BorderSizePixel  = 0
     floatLogo.ZIndex           = 5
     floatLogo.Parent           = gui
-    Instance.new("UICorner", floatLogo).CornerRadius = UDim.new(1, 0)
+    Instance.new("UICorner", floatLogo).CornerRadius = UDim.new(0, 7)
 
     local floatStroke = Instance.new("UIStroke")
     floatStroke.Color     = Color3.fromRGB(50, 50, 50)
@@ -2834,8 +2936,8 @@ local function CreateUI()
     floatStroke.Parent    = floatLogo
 
     local floatStatusDot = Instance.new("Frame")
-    floatStatusDot.Size             = UDim2.new(0, 14, 0, 14)
-    floatStatusDot.Position         = UDim2.new(1, -14, 1, -14)
+    floatStatusDot.Size             = UDim2.new(0, 18, 0, 18)
+    floatStatusDot.Position         = UDim2.new(1, -18, 1, -18)
     floatStatusDot.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
     floatStatusDot.BorderSizePixel  = 0
     floatStatusDot.ZIndex           = 6
