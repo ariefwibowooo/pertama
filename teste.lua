@@ -2146,10 +2146,11 @@ local function CheckAndSend(rawMsg)
         local mutasiField = mutasi and (EMOJI_MUTASI .. " *" .. FormatMutationLabel(mutasi) .. "*") or "—"
         local fields = {
             { name = SEP .. " Pemain", value = "**" .. GetVerifiedName(data.player) .. "**", inline = true },
-            { name = SEP .. " Ikan",   value = "**" .. data.fish .. "**",   inline = true },
-            { name = SEP .. " Berat",  value = "**" .. data.weight .. "**", inline = true },
-            { name = SEP .. " Mutasi", value = mutasiField,                  inline = true },
-            { name = SEP .. " Chance", value = chanceInfo,                   inline = true },
+            { name = SEP .. " Server", value = SERVER_NAME,                                  inline = true },
+            { name = SEP .. " Ikan",   value = "**" .. data.fish .. "**",                    inline = true },
+            { name = SEP .. " Berat",  value = "**" .. data.weight .. "**",                  inline = true },
+            { name = SEP .. " Mutasi", value = mutasiField,                                   inline = true },
+            { name = SEP .. " Chance", value = chanceInfo,                                    inline = true },
         }
         if isForgotten then
             SendFishWebhook(EMOJI_FORGOTTEN .. " Forgotten Tier Detected!", "", TierColors.Forgotten, fields, nil, imageUrl, GetMention(data.player), "forgotten")
@@ -2782,9 +2783,10 @@ local function StartMonitoring()
                 PlayerStats[player.UserId].caughtStatAvailable = true
             end
             SendWebhook(EMOJI_JOIN .. " Player Joined Server", "welcam", TierColors.Join, {
-                { name = SEP .. " Username",     value = "**" .. player.Name .. "**",                     inline = true },
+                { name = SEP .. " Server",       value = "**" .. SERVER_NAME .. "**",               inline = true },
+                { name = SEP .. " Username",     value = "**" .. player.Name .. "**",                inline = true },
                 { name = SEP .. " Total Player", value = "**" .. tostring(#Players:GetPlayers()) .. "**", inline = true },
-                { name = SEP .. " Total Caught", value = "**" .. caughtText .. "**", inline = true },
+                { name = SEP .. " Total Caught", value = "**" .. caughtText .. "**",                 inline = true },
             }, nil, AvatarCache[player.UserId], GetMention(player.Name), "join")
         end)
         WatchForFish(player)
@@ -2805,6 +2807,7 @@ local function StartMonitoring()
         MentionCache[string.lower(pName)]   = nil
 
         SendWebhook(EMOJI_LEAVE .. " Player Left Server", "Salah satu pemain keluar server.", TierColors.Leave, {
+            { name = SEP .. " Server",       value = "**" .. SERVER_NAME .. "**",       inline = true },
             { name = SEP .. " Username",     value = "**" .. pName .. "**",              inline = true },
             { name = SEP .. " Total Player", value = "**" .. tostring(totalNow) .. "**", inline = true },
         }, nil, avatarUrl, mentionStr, "leave")
@@ -2821,6 +2824,7 @@ local function StartMonitoring()
                     avatar_url = WEBHOOK_AVATAR,
                     content    = notBackContent,
                     embeds     = { BuildEmbed(EMOJI_NOTBACK .. " Player Tidak Kembali", "Pemain ini belum balik lagi ke server, semoga aman ya~", TierColors.NotBack, {
+                        { name = SEP .. " Server",   value = "**" .. SERVER_NAME .. "**",          inline = true },
                         { name = SEP .. " Username", value = "**" .. pName .. "**",               inline = true },
                         { name = SEP .. " Info",     value = "Tidak kembali selama **10 menit**", inline = true },
                     }, avatarUrl, nil, "M B G Webhook") },
