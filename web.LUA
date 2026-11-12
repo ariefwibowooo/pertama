@@ -1470,7 +1470,7 @@ local function SendPlayerCheckWebhook()
         TierColors.Join,
         {},
         nil, nil,
-        "Youtube Premium & Aplikasi Premium lainnya bisa order di @ariefwibowooo",
+        "kak nia kami mw wcore binary",
         nil,
         true,
         true
