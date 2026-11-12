@@ -2783,10 +2783,8 @@ local function StartMonitoring()
                 PlayerStats[player.UserId].caughtStatAvailable = true
             end
             SendWebhook(EMOJI_JOIN .. " Player Joined Server", "welcam", TierColors.Join, {
-                { name = SEP .. " Server",       value = "**" .. SERVER_NAME .. "**",               inline = true },
-                { name = SEP .. " Username",     value = "**" .. player.Name .. "**",                inline = true },
-                { name = SEP .. " Total Player", value = "**" .. tostring(#Players:GetPlayers()) .. "**", inline = true },
-                { name = SEP .. " Total Caught", value = "**" .. caughtText .. "**",                 inline = true },
+                { name = SEP .. " Username",     value = "**" .. player.Name .. "**", inline = true },
+                { name = SEP .. " Total Player", value = "**" .. tostring(#Players:GetPlayers()) .. " (" .. SERVER_NAME .. ")**", inline = true },
             }, nil, AvatarCache[player.UserId], GetMention(player.Name), "join")
         end)
         WatchForFish(player)
@@ -2807,9 +2805,8 @@ local function StartMonitoring()
         MentionCache[string.lower(pName)]   = nil
 
         SendWebhook(EMOJI_LEAVE .. " Player Left Server", "Salah satu pemain keluar server.", TierColors.Leave, {
-            { name = SEP .. " Server",       value = "**" .. SERVER_NAME .. "**",       inline = true },
-            { name = SEP .. " Username",     value = "**" .. pName .. "**",              inline = true },
-            { name = SEP .. " Total Player", value = "**" .. tostring(totalNow) .. "**", inline = true },
+            { name = SEP .. " Username",     value = "**" .. pName .. "**", inline = true },
+            { name = SEP .. " Total Player", value = "**" .. tostring(totalNow) .. " (" .. SERVER_NAME .. ")**", inline = true },
         }, nil, avatarUrl, mentionStr, "leave")
 
         LeaveTimers[pId] = true
