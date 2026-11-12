@@ -11,6 +11,7 @@ local TweenService               = game:GetService("TweenService")
 local Workspace                  = game:GetService("Workspace")
 
 local WEBHOOK_URL                = ""
+local SERVER_NAME                = "BANG DULLL" -- Nama server cukup diubah dari sini
 local WEBHOOK_STATS              = "" -- NOTE: dipertahankan sebagai fallback URL buat "Check Player On Server"
                                       -- kalau WEBHOOK_CHECKPLAYER kosong. Embed rekap otomatis "Server Stats"
                                       -- yang dulu numpang di sini SUDAH DIHAPUS sesuai request.
@@ -1390,7 +1391,7 @@ local function SendMonitorStartedWebhook(allPlayers, names)
             "Server monitor sudah aktif",
             TierColors.Join,
             {
-                { name = SEP .. " Server",  value = "BANG DUL",                    inline = true },
+                { name = SEP .. " Server",  value = SERVER_NAME,                    inline = true },
                 { name = SEP .. " Total Player", value = "**" .. tostring(#allPlayers) .. "** orang", inline = true },
                 { name = SEP .. " Daftar Player", value = "```\n" .. table.concat(names, ", ") .. "```", inline = false },
             }
@@ -1461,7 +1462,7 @@ local function SendPlayerCheckWebhook()
     -- Header TikTok dan judul Check Player sama-sama berada di DESCRIPTION embed.
     -- Hanya teks nama TikTok yang dibungkus Markdown link; kedua emoji berada di luar link.
     local tiktokHeader = "# " .. EMOJI_TIKTOK .. " [TIKTOK   M - B - G](https://www.tiktok.com/@mainbarenggengz) " .. EMOJI_TIKTOK
-    local checkPlayerHeader = EMOJI_CHECK .. " **Check Player On Server OM BEDULLLL**"
+    local checkPlayerHeader = EMOJI_CHECK .. " **Check Player On Server " .. SERVER_NAME .. "**"
     local description = tiktokHeader .. "\n\n" .. checkPlayerHeader .. "\n\n" .. playerDescription
     print("[M B G DEBUG] Deskripsi embed panjangnya " .. tostring(#description) .. " karakter")
     local checkPlayerEmbed = BuildEmbed(
@@ -1542,7 +1543,7 @@ local function SendEventWebhook(eventData, rawText)
             eventData.description,
             eventData.color,
             {
-                { name = SEP .. " Server",  value = "BANG DUL",              inline = true },
+                { name = SEP .. " Server",  value = SERVER_NAME,              inline = true },
                 { name = SEP .. " Total Player", value = "**" .. tostring(#Players:GetPlayers()) .. "** orang", inline = true },
                 { name = SEP .. " Berakhir Pada", value = "<t:" .. tostring(endTime) .. ":R>", inline = true },
             },
@@ -2624,7 +2625,7 @@ local function SendElementalBalancerWebhook(isBalanced, fire, frozen, storm)
                     },
                     {
                         name = SEP .. " SERVER",
-                        value = "**BANG DUL**",
+                        value = "**" .. SERVER_NAME .. "**",
                         inline = true,
                     },
                 },
