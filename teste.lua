@@ -116,7 +116,7 @@ local MemberList = {
     { username = "makin2545",        display = "makin2545",            id = "1132125111508541493" },
     { username = "naurakori54",      display = "MICO",                 id = "444135915636391939" },
     { username = "Pacarparksungjin", display = "NIA",                  id = "1132125111508541493" },
-    { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
+    { username = "kakcyn",           display = "kakcyn",               id = "429815854692040717" },
     { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
     { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
 
