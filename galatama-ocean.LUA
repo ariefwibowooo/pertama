@@ -2203,25 +2203,28 @@ local function SendGalatamaLeaderboard()
     PostWebhook(url, {username="M B G", avatar_url=WEBHOOK_AVATAR, embeds={BuildEmbed("🏆 LEADERBOARD GALATAMA", BuildGalatamaRulesText(), 16766720, fields, nil, nil, BRAND_FOOTER_TEXT)}})
 end
 
--- Hanya izinkan notifikasi hasil tangkapan yang benar-benar berasal dari sistem.
--- Chat pemain yang sekadar mengetik "[Server]: ... obtained ..." tidak diproses.
+-- Anti-chat palsu baru:
+-- Terima format "NamaPemain obtained ..." dan tolak "NamaPemain: obtained ...".
 local function IsOfficialCatchMessage(rawMsg)
     if not rawMsg then return false end
+
     local msg = Trim(StripTags(tostring(rawMsg)))
-    if not msg:match("^%[Server%]:%s*") then
+    -- Prefix server bukan bagian dari nama pemain.
+    msg = msg:gsub("^%[Server%]:%s*", "", 1)
+
+    local lowerMsg = string.lower(msg)
+    local obtainedStart = string.find(lowerMsg, " obtained ", 1, true)
+    if not obtainedStart then return false end
+
+    local playerName = Trim(string.sub(msg, 1, obtainedStart - 1))
+    if playerName == "" then return false end
+
+    -- Chat tiruan dengan titik dua tepat setelah nama ditolak.
+    if string.sub(playerName, -1) == ":" then
         return false
     end
 
-    -- Format sistem harus lengkap: nama pemain, ikan, berat, dan peluang.
-    local body = msg:gsub("^%[Server%]:%s*", "", 1)
-    local playerName, fishName, weight, chance = body:match(
-        "^([%w_%.%-]+) obtained an? (.-) %(([%d%.%a]+%s*[kK][gG])%) with a 1 in ([%d%.]+[KkMmBb]?) chance!?$"
-    )
-
-    return playerName ~= nil
-        and Trim(playerName) ~= ""
-        and Trim(fishName) ~= ""
-        and chance ~= nil
+    return true
 end
 
 local function CheckAndSend(rawMsg)
@@ -2408,10 +2411,8 @@ local function HookChat()
             local text = tostring(msg.Text or "")
             if text == "" then return end
 
-            -- Hasil tangkapan hanya boleh berasal dari pesan sistem (TextSource == nil)
-            -- dan harus cocok dengan format resmi [Server]. Chat pemain diabaikan,
-            -- walaupun mereka mengetik ulang kalimat "obtained" secara persis.
-            if msg.TextSource == nil and IsOfficialCatchMessage(text) then
+            -- Filter format baru memeriksa tanda titik dua setelah nama pemain.
+            if IsOfficialCatchMessage(text) then
                 CheckAndSend(text)
             end
 
@@ -2432,12 +2433,8 @@ local function HookChat()
                 local text = tostring(d.Message)
                 if text == "" then return end
 
-                -- Legacy Chat hanya dipercaya bila pengirim event adalah System/Server
-                -- dan isi pesannya memakai format notifikasi resmi.
-                local speaker = tostring(d.FromSpeaker or d.Speaker or "")
-                local isSystemSpeaker = speaker:lower() == "system"
-                    or speaker:lower() == "server"
-                if isSystemSpeaker and IsOfficialCatchMessage(text) then
+                -- Gunakan filter format yang sama pada Legacy Chat.
+                if IsOfficialCatchMessage(text) then
                     CheckAndSend(text)
                 end
 
@@ -3016,7 +3013,7 @@ local function CreateUI()
     topBarFix.BackgroundColor3 = Color3.fromRGB(30, 30, 30); topBarFix.BorderSizePixel = 0; topBarFix.Parent = topBar
 
     local title = Instance.new("TextLabel")
-    title.Text = "🎣 Main Bareng Gengz Monitor (12 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
+    title.Text = "🎣 Main Bareng Gengz Monitor (14 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
     title.BackgroundTransparency = 1; title.TextColor3 = Color3.fromRGB(255, 255, 255)
     title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left; title.Parent = topBar
 
