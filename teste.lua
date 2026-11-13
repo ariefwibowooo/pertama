@@ -2088,72 +2088,46 @@ local function StartAfkMonitor()
     end)
 end
 
--- Anti-chat palsu TANPA pemeriksaan warna.
--- Keaslian ditentukan dari metadata jalur pesan (system/server), bukan
--- dari tulisan "[Server]" yang bisa diketik atau dipalsukan oleh pemain.
--- Isi tetap dibuat fleksibel agar notifikasi ikan asli yang sudah didukung
--- ParseChat (termasuk variasi format berat) tidak mudah terbuang.
-local function HasExplicitFishColorMarkup(rawMsg)
-    if not rawMsg then return nil end
+-- Deteksi warna RichText pada BAGIAN NAMA IKAN.
+-- Catatan: ini hanya bisa bekerja jika sumber pesan benar-benar menyertakan
+-- markup <font color=...>. TextChatMessage.Text dapat saja sudah berupa teks
+-- polos; dalam kondisi itu warna tidak bisa disimpulkan dari string tersebut.
+local function HasColoredFishName(rawMsg)
+    if not rawMsg then return false end
     local raw = tostring(rawMsg)
     local obtainedStart = string.find(string.lower(raw), " obtained ", 1, true)
-    if not obtainedStart then return nil end
+    if not obtainedStart then return false end
 
     local fishSection = raw:sub(obtainedStart + #" obtained ")
+    -- Buang artikel a/an, lalu batasi sampai berat atau bagian peluang.
     fishSection = fishSection:gsub("^[Aa][Nn]%s+", "", 1)
     fishSection = fishSection:gsub("^[Aa]%s+", "", 1)
     fishSection = fishSection:match("^(.-)%s*%(%s*[%d%.]+%s*[kK][gG]%s*%)") or fishSection
     fishSection = fishSection:match("^(.-)%s+with a 1 in") or fishSection
 
-    local tag = fishSection:match("<font%s+[^>]*>")
-    if not tag then return nil end
-    local color = tag:match("[Cc][Oo][Ll][Oo][Rr]%s*=%s*['\"]([^'\"]+)['\"]")
-        or tag:match("[Cc][Oo][Ll][Oo][Rr]%s*=%s*([^%s>]+)")
-    if not color then return nil end
-
-    color = string.lower(color:gsub("%s+", ""))
-    if color == "#ffffff" or color == "#fff" or color == "white"
-        or color == "rgb(255,255,255)" then
-        return false
+    -- Harus ada tag font berwarna yang membungkus teks pada bagian nama ikan.
+    local openStart, openEnd = fishSection:find("<font%s+[^>]*color%s*=%s*['\"]?#[%w]+['\"]?[^>]*>")
+    if not openStart then
+        openStart, openEnd = fishSection:find("<font%s+[^>]*color%s*=%s*['\"]?[%w%(]+['\"]?[^>]*>")
     end
-    return true
+    if not openStart then return false end
+
+    local closeStart = fishSection:find("</font%s*>", openEnd + 1)
+    return closeStart ~= nil and closeStart > openEnd
 end
 
-local function IsOfficialCatchMessage(rawMsg, isSystemMessage)
-    if not rawMsg or isSystemMessage ~= true then return false end
+-- Pesan palsu dengan prefix "NamaPemain:" ditolak. Selain itu, pesan
+-- hanya lolos jika nama ikannya membawa markup warna RichText.
+local function IsOfficialCatchMessage(rawMsg)
+    if not rawMsg then return false end
+    local raw = tostring(rawMsg)
+    local msg = Trim(StripTags(raw)):gsub("^%[Server%]:%s*", "", 1)
+    local obtainedStart = string.find(string.lower(msg), " obtained ", 1, true)
+    if not obtainedStart then return false end
 
-    local msg = Trim(StripTags(tostring(rawMsg)))
-    if msg == "" then return false end
-
-    -- Prefix hanya dibersihkan setelah sumber pesan dinyatakan system/server.
-    msg = string.gsub(msg, "^%[Server%]:%s*", "")
-    msg = Trim(msg)
-
-    local obtainedStart, obtainedEnd = string.find(
-        string.lower(msg), " obtained ", 1, true
-    )
-    if not obtainedStart or not obtainedEnd then return false end
-
-    local playerName = Trim(string.sub(msg, 1, obtainedStart - 1))
-    local fishPart = Trim(string.sub(msg, obtainedEnd + 1))
-
-    -- Tolak format sender palsu seperti "[MBG] ARIS:" atau "ARIS:".
-    if playerName == "" or string.find(playerName, ":", 1, true) then
-        return false
-    end
-    if string.find(playerName, "%[") or string.find(playerName, "%]") then
-        return false
-    end
-
-    -- Pastikan bagian ikan tidak kosong; ParseChat tetap menangani variasi
-    -- nama ikan/berat yang sudah digunakan script ini.
-    fishPart = string.gsub(fishPart, "^[Aa][Nn]%s+", "")
-    fishPart = string.gsub(fishPart, "^[Aa]%s+", "")
-    if Trim(fishPart) == "" then return false end
-    local colorResult = HasExplicitFishColorMarkup(rawMsg)
-    if colorResult == false then return false end
-    -- Jika markup warna tidak tersedia, metadata system tetap menjadi filter utama.
-    return true
+    local playerPart = Trim(msg:sub(1, obtainedStart - 1))
+    if playerPart == "" or playerPart:find(":", 1, true) then return false end
+    return HasColoredFishName(raw)
 end
 
 local function CheckAndSend(rawMsg)
@@ -2337,10 +2311,9 @@ local function HookChat()
             local text = tostring(msg.Text or "")
             if text == "" then return end
 
-            -- TextSource == nil menandakan pesan sistem; pesan pemain ditolak
-            -- meskipun isi teksnya memakai prefix "[Server]".
-            local isSystemMessage = (msg.TextSource == nil)
-            if IsOfficialCatchMessage(text, isSystemMessage) then
+            -- Filter baru: pesan dengan ":" setelah nama pemain ditolak.
+            -- Pesan tangkapan tanpa ":" tetap diproses, termasuk dari chat yang direplikasi.
+            if IsOfficialCatchMessage(text) then
                 CheckAndSend(text)
             end
 
@@ -2361,15 +2334,9 @@ local function HookChat()
                 local text = tostring(d.Message)
                 if text == "" then return end
 
-                -- Legacy Chat: terima hanya speaker system/server berdasarkan
-                -- metadata event, bukan berdasarkan prefix yang tertulis di pesan.
-                local speaker = tostring(d.FromSpeaker or d.Speaker or "")
-                local isSystemMessage = (
-                    speaker == "System"
-                    or speaker == "Server"
-                    or speaker == "[Server]"
-                )
-                if IsOfficialCatchMessage(text, isSystemMessage) then
+                -- Event legacy biasanya hanya memberi teks polos, tanpa metadata
+                -- warna. Karena itu ia hanya lolos bila markup warna memang ada.
+                if IsOfficialCatchMessage(text) then
                     CheckAndSend(text)
                 end
 
