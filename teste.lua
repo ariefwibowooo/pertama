@@ -2088,6 +2088,28 @@ local function StartAfkMonitor()
     end)
 end
 
+-- Validasi anti-chat palsu: hanya pesan hasil tangkapan resmi dari sistem yang diproses.
+-- Pesan pemain yang meniru format "obtained" akan diabaikan.
+local function IsOfficialCatchMessage(rawMsg)
+    if not rawMsg then return false end
+
+    local msg = Trim(StripTags(tostring(rawMsg)))
+    if not msg:match("^%[Server%]:%s*") then
+        return false
+    end
+
+    local body = msg:gsub("^%[Server%]:%s*", "", 1)
+    local playerName, fishName, weight, chance = body:match(
+        "^([%w_%.%-]+) obtained an? (.-) %(([%d%.%a]+%s*[kK][gG])%) with a 1 in ([%d%.]+[KkMmBb]?) chance!?$"
+    )
+
+    return playerName ~= nil
+        and Trim(playerName) ~= ""
+        and Trim(fishName) ~= ""
+        and weight ~= nil
+        and chance ~= nil
+end
+
 local function CheckAndSend(rawMsg)
     if not SCRIPT_ACTIVE then return end
     if not string.find(string.lower(rawMsg), "obtained") then return end
@@ -2269,10 +2291,10 @@ local function HookChat()
             local text = tostring(msg.Text or "")
             if text == "" then return end
 
-            -- Jangan lagi bergantung pada TextSource == nil. Pesan chat pemain
-            -- tetap diproses untuk command, sedangkan CheckAndSend() hanya
-            -- dijalankan untuk pesan yang memang berisi hasil catch.
-            CheckAndSend(text)
+            -- Hanya pesan sistem dengan format hasil tangkapan resmi yang diproses.
+            if msg.TextSource == nil and IsOfficialCatchMessage(text) then
+                CheckAndSend(text)
+            end
 
             if IsCheckPlayerCommand(text) and SCRIPT_ACTIVE then
                 local senderUserId = msg.TextSource and msg.TextSource.UserId or 0
@@ -2291,9 +2313,10 @@ local function HookChat()
                 local text = tostring(d.Message)
                 if text == "" then return end
 
-                -- Legacy Chat tetap menjadi fallback untuk detector catch.
-                local lowerMsg = string.lower(text)
-                if string.find(lowerMsg, "%[server%]") or string.find(lowerMsg, "obtained") then
+                -- Legacy Chat hanya menerima pesan dari System/Server dengan format resmi.
+                local speaker = tostring(d.FromSpeaker or d.Speaker or ""):lower()
+                if (speaker == "system" or speaker == "server")
+                    and IsOfficialCatchMessage(text) then
                     CheckAndSend(text)
                 end
 
@@ -2872,7 +2895,7 @@ local function CreateUI()
     topBarFix.BackgroundColor3 = Color3.fromRGB(30, 30, 30); topBarFix.BorderSizePixel = 0; topBarFix.Parent = topBar
 
     local title = Instance.new("TextLabel")
-    title.Text = "🎣 Main Bareng Gengz Monitor (12 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
+    title.Text = "🎣 Main Bareng Gengz Monitor (14 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
     title.BackgroundTransparency = 1; title.TextColor3 = Color3.fromRGB(255, 255, 255)
     title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left; title.Parent = topBar
 
