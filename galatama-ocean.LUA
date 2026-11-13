@@ -2207,6 +2207,32 @@ end
 -- 1) Pesan harus berasal dari jalur pesan sistem/server, bukan pesan pemain.
 -- 2) Isi harus cocok dengan format notifikasi tangkapan Fish It yang lengkap.
 -- Prefix teks seperti "[Server]" saja TIDAK dianggap bukti keaslian.
+local function HasExplicitFishColorMarkup(rawMsg)
+    if not rawMsg then return nil end
+    local raw = tostring(rawMsg)
+    local obtainedStart = string.find(string.lower(raw), " obtained ", 1, true)
+    if not obtainedStart then return nil end
+
+    local fishSection = raw:sub(obtainedStart + #" obtained ")
+    fishSection = fishSection:gsub("^[Aa][Nn]%s+", "", 1)
+    fishSection = fishSection:gsub("^[Aa]%s+", "", 1)
+    fishSection = fishSection:match("^(.-)%s*%(%s*[%d%.]+%s*[kK][gG]%s*%)") or fishSection
+    fishSection = fishSection:match("^(.-)%s+with a 1 in") or fishSection
+
+    local tag = fishSection:match("<font%s+[^>]*>")
+    if not tag then return nil end
+    local color = tag:match("[Cc][Oo][Ll][Oo][Rr]%s*=%s*['\"]([^'\"]+)['\"]")
+        or tag:match("[Cc][Oo][Ll][Oo][Rr]%s*=%s*([^%s>]+)")
+    if not color then return nil end
+
+    color = string.lower(color:gsub("%s+", ""))
+    if color == "#ffffff" or color == "#fff" or color == "white"
+        or color == "rgb(255,255,255)" then
+        return false
+    end
+    return true
+end
+
 local function IsOfficialCatchMessage(rawMsg, isSystemMessage)
     if not rawMsg or isSystemMessage ~= true then return false end
 
@@ -2231,7 +2257,9 @@ local function IsOfficialCatchMessage(rawMsg, isSystemMessage)
     if playerName == "" or fishName == "" then return false end
     if playerName:find(":", 1, true) or playerName:find("%[") then return false end
     if fishName == "" or fishName:find("^%[") then return false end
-
+    local colorResult = HasExplicitFishColorMarkup(rawMsg)
+    if colorResult == false then return false end
+    -- Jika markup warna tidak tersedia, metadata system tetap menjadi filter utama.
     return true
 end
 
