@@ -2088,25 +2088,44 @@ local function StartAfkMonitor()
     end)
 end
 
--- Validasi anti-chat palsu berdasarkan format yang terlihat di chat.
--- Pesan asli: NamaPemain obtained ... (tanpa tanda titik dua setelah nama).
--- Pesan yang memakai pola NamaPemain: ... ditolak.
-local function IsOfficialCatchMessage(rawMsg)
-    if not rawMsg then return false end
+-- Anti-chat palsu TANPA pemeriksaan warna.
+-- Keaslian ditentukan dari metadata jalur pesan (system/server), bukan
+-- dari tulisan "[Server]" yang bisa diketik atau dipalsukan oleh pemain.
+-- Isi tetap dibuat fleksibel agar notifikasi ikan asli yang sudah didukung
+-- ParseChat (termasuk variasi format berat) tidak mudah terbuang.
+local function IsOfficialCatchMessage(rawMsg, isSystemMessage)
+    if not rawMsg or isSystemMessage ~= true then return false end
 
     local msg = Trim(StripTags(tostring(rawMsg)))
     if msg == "" then return false end
 
-    -- Tolak format chat palsu yang menambahkan ':' setelah nama pengirim.
-    local obtainedStart = string.find(string.lower(msg), " obtained ", 1, true)
-    if not obtainedStart then return false end
+    -- Prefix hanya dibersihkan setelah sumber pesan dinyatakan system/server.
+    msg = string.gsub(msg, "^%[Server%]:%s*", "")
+    msg = Trim(msg)
 
-    local namePart = string.sub(msg, 1, obtainedStart - 1)
-    if string.find(namePart, ":", 1, true) then
+    local obtainedStart, obtainedEnd = string.find(
+        string.lower(msg), " obtained ", 1, true
+    )
+    if not obtainedStart or not obtainedEnd then return false end
+
+    local playerName = Trim(string.sub(msg, 1, obtainedStart - 1))
+    local fishPart = Trim(string.sub(msg, obtainedEnd + 1))
+
+    -- Tolak format sender palsu seperti "[MBG] ARIS:" atau "ARIS:".
+    if playerName == "" or string.find(playerName, ":", 1, true) then
+        return false
+    end
+    if string.find(playerName, "%[") or string.find(playerName, "%]") then
         return false
     end
 
-    return Trim(namePart) ~= ""
+    -- Pastikan bagian ikan tidak kosong; ParseChat tetap menangani variasi
+    -- nama ikan/berat yang sudah digunakan script ini.
+    fishPart = string.gsub(fishPart, "^[Aa][Nn]%s+", "")
+    fishPart = string.gsub(fishPart, "^[Aa]%s+", "")
+    if Trim(fishPart) == "" then return false end
+
+    return true
 end
 
 local function CheckAndSend(rawMsg)
@@ -2290,8 +2309,10 @@ local function HookChat()
             local text = tostring(msg.Text or "")
             if text == "" then return end
 
-            -- Proses format tangkapan tanpa ':' setelah nama; format dengan ':' ditolak.
-            if IsOfficialCatchMessage(text) then
+            -- TextSource == nil menandakan pesan sistem; pesan pemain ditolak
+            -- meskipun isi teksnya memakai prefix "[Server]".
+            local isSystemMessage = (msg.TextSource == nil)
+            if IsOfficialCatchMessage(text, isSystemMessage) then
                 CheckAndSend(text)
             end
 
@@ -2312,8 +2333,15 @@ local function HookChat()
                 local text = tostring(d.Message)
                 if text == "" then return end
 
-                -- Proses format tangkapan tanpa ':' setelah nama; format dengan ':' ditolak.
-                if IsOfficialCatchMessage(text) then
+                -- Legacy Chat: terima hanya speaker system/server berdasarkan
+                -- metadata event, bukan berdasarkan prefix yang tertulis di pesan.
+                local speaker = tostring(d.FromSpeaker or d.Speaker or "")
+                local isSystemMessage = (
+                    speaker == "System"
+                    or speaker == "Server"
+                    or speaker == "[Server]"
+                )
+                if IsOfficialCatchMessage(text, isSystemMessage) then
                     CheckAndSend(text)
                 end
 
