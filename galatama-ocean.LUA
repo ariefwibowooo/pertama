@@ -2203,26 +2203,34 @@ local function SendGalatamaLeaderboard()
     PostWebhook(url, {username="M B G", avatar_url=WEBHOOK_AVATAR, embeds={BuildEmbed("🏆 LEADERBOARD GALATAMA", BuildGalatamaRulesText(), 16766720, fields, nil, nil, BRAND_FOOTER_TEXT)}})
 end
 
--- Anti-chat palsu baru:
--- Terima format "NamaPemain obtained ..." dan tolak "NamaPemain: obtained ...".
-local function IsOfficialCatchMessage(rawMsg)
-    if not rawMsg then return false end
+-- Anti-chat palsu tanpa mengandalkan warna:
+-- 1) Pesan harus berasal dari jalur pesan sistem/server, bukan pesan pemain.
+-- 2) Isi harus cocok dengan format notifikasi tangkapan Fish It yang lengkap.
+-- Prefix teks seperti "[Server]" saja TIDAK dianggap bukti keaslian.
+local function IsOfficialCatchMessage(rawMsg, isSystemMessage)
+    if not rawMsg or isSystemMessage ~= true then return false end
 
     local msg = Trim(StripTags(tostring(rawMsg)))
-    -- Prefix server bukan bagian dari nama pemain.
     msg = msg:gsub("^%[Server%]:%s*", "", 1)
+    msg = Trim(msg)
+    if msg == "" then return false end
 
-    local lowerMsg = string.lower(msg)
-    local obtainedStart = string.find(lowerMsg, " obtained ", 1, true)
-    if not obtainedStart then return false end
+    -- Format resmi: Nama obtained a/an Ikan (berat kg) with a 1 in X chance!
+    -- Nama pemain tidak boleh mengandung prefix/sender palsu atau tanda titik dua.
+    local playerName, fishName, weight, chance = msg:match(
+        "^(.-) obtained an? (.-) %(([%d%.]+%s*[kK][gG])%) with a 1 in ([%d%.]+[KkMmBb]?) chance!?$"
+    )
 
-    local playerName = Trim(string.sub(msg, 1, obtainedStart - 1))
-    if playerName == "" then return false end
-
-    -- Chat tiruan dengan titik dua tepat setelah nama ditolak.
-    if string.sub(playerName, -1) == ":" then
+    if not playerName or not fishName or not weight or not chance then
         return false
     end
+
+    playerName = Trim(playerName)
+    fishName = Trim(fishName)
+
+    if playerName == "" or fishName == "" then return false end
+    if playerName:find(":", 1, true) or playerName:find("%[") then return false end
+    if fishName == "" or fishName:find("^%[") then return false end
 
     return true
 end
@@ -2411,8 +2419,10 @@ local function HookChat()
             local text = tostring(msg.Text or "")
             if text == "" then return end
 
-            -- Filter format baru memeriksa tanda titik dua setelah nama pemain.
-            if IsOfficialCatchMessage(text) then
+            -- TextSource terisi berarti pesan dikirim pemain; tolak meski
+            -- pemain menulis prefix "[Server]" atau format tangkapan lengkap.
+            local isSystemMessage = (msg.TextSource == nil)
+            if IsOfficialCatchMessage(text, isSystemMessage) then
                 CheckAndSend(text)
             end
 
@@ -2433,8 +2443,14 @@ local function HookChat()
                 local text = tostring(d.Message)
                 if text == "" then return end
 
-                -- Gunakan filter format yang sama pada Legacy Chat.
-                if IsOfficialCatchMessage(text) then
+                -- Pada Legacy Chat, hanya speaker sistem/server yang diterima.
+                local speaker = tostring(d.FromSpeaker or d.Speaker or "")
+                local isSystemMessage = (
+                    speaker == "System"
+                    or speaker == "Server"
+                    or speaker == "[Server]"
+                )
+                if IsOfficialCatchMessage(text, isSystemMessage) then
                     CheckAndSend(text)
                 end
 
