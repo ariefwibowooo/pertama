@@ -2088,26 +2088,25 @@ local function StartAfkMonitor()
     end)
 end
 
--- Validasi anti-chat palsu: hanya pesan hasil tangkapan resmi dari sistem yang diproses.
--- Pesan pemain yang meniru format "obtained" akan diabaikan.
+-- Validasi anti-chat palsu berdasarkan format yang terlihat di chat.
+-- Pesan asli: NamaPemain obtained ... (tanpa tanda titik dua setelah nama).
+-- Pesan yang memakai pola NamaPemain: ... ditolak.
 local function IsOfficialCatchMessage(rawMsg)
     if not rawMsg then return false end
 
     local msg = Trim(StripTags(tostring(rawMsg)))
-    if not msg:match("^%[Server%]:%s*") then
+    if msg == "" then return false end
+
+    -- Tolak format chat palsu yang menambahkan ':' setelah nama pengirim.
+    local obtainedStart = string.find(string.lower(msg), " obtained ", 1, true)
+    if not obtainedStart then return false end
+
+    local namePart = string.sub(msg, 1, obtainedStart - 1)
+    if string.find(namePart, ":", 1, true) then
         return false
     end
 
-    local body = msg:gsub("^%[Server%]:%s*", "", 1)
-    local playerName, fishName, weight, chance = body:match(
-        "^([%w_%.%-]+) obtained an? (.-) %(([%d%.%a]+%s*[kK][gG])%) with a 1 in ([%d%.]+[KkMmBb]?) chance!?$"
-    )
-
-    return playerName ~= nil
-        and Trim(playerName) ~= ""
-        and Trim(fishName) ~= ""
-        and weight ~= nil
-        and chance ~= nil
+    return Trim(namePart) ~= ""
 end
 
 local function CheckAndSend(rawMsg)
@@ -2291,8 +2290,8 @@ local function HookChat()
             local text = tostring(msg.Text or "")
             if text == "" then return end
 
-            -- Hanya pesan sistem dengan format hasil tangkapan resmi yang diproses.
-            if msg.TextSource == nil and IsOfficialCatchMessage(text) then
+            -- Proses format tangkapan tanpa ':' setelah nama; format dengan ':' ditolak.
+            if IsOfficialCatchMessage(text) then
                 CheckAndSend(text)
             end
 
@@ -2313,10 +2312,8 @@ local function HookChat()
                 local text = tostring(d.Message)
                 if text == "" then return end
 
-                -- Legacy Chat hanya menerima pesan dari System/Server dengan format resmi.
-                local speaker = tostring(d.FromSpeaker or d.Speaker or ""):lower()
-                if (speaker == "system" or speaker == "server")
-                    and IsOfficialCatchMessage(text) then
+                -- Proses format tangkapan tanpa ':' setelah nama; format dengan ':' ditolak.
+                if IsOfficialCatchMessage(text) then
                     CheckAndSend(text)
                 end
 
