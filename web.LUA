@@ -2088,26 +2088,28 @@ local function StartAfkMonitor()
     end)
 end
 
--- Hanya izinkan notifikasi hasil tangkapan yang benar-benar berasal dari sistem.
--- Chat pemain yang sekadar mengetik ulang pesan "obtained" tidak diproses.
+-- Filter anti-chat palsu versi baru:
+-- Pesan tangkapan asli: "NamaPemain obtained ..."
+-- Pesan tiruan: "NamaPemain: obtained ..." -> ditolak.
+-- Prefix sistem lama [Server]: tetap boleh ada dan dibuang saat validasi.
 local function IsOfficialCatchMessage(rawMsg)
     if not rawMsg then return false end
+
     local msg = Trim(StripTags(tostring(rawMsg)))
-    if not msg:match("^%[Server%]:%s*") then
+    msg = msg:gsub("^%[Server%]:%s*", "", 1)
+
+    local obtainedStart = string.find(string.lower(msg), " obtained ", 1, true)
+    if not obtainedStart then return false end
+
+    local playerPart = Trim(msg:sub(1, obtainedStart - 1))
+    if playerPart == "" then return false end
+
+    -- Tanda titik dua setelah nama pemain menandakan chat tiruan.
+    if playerPart:find(":", 1, true) then
         return false
     end
 
-    -- Format notifikasi resmi harus memuat pemain, ikan, berat, dan peluang.
-    local body = msg:gsub("^%[Server%]:%s*", "", 1)
-    local playerName, fishName, weight, chance = body:match(
-        "^([%w_%.%-]+) obtained an? (.-) %(([%d%.%a]+%s*[kK][gG])%) with a 1 in ([%d%.]+[KkMmBb]?) chance!?$"
-    )
-
-    return playerName ~= nil
-        and Trim(playerName) ~= ""
-        and Trim(fishName) ~= ""
-        and weight ~= nil
-        and chance ~= nil
+    return true
 end
 
 local function CheckAndSend(rawMsg)
@@ -2291,9 +2293,9 @@ local function HookChat()
             local text = tostring(msg.Text or "")
             if text == "" then return end
 
-            -- Hasil tangkapan hanya diproses jika berasal dari sistem dan
-            -- cocok dengan format notifikasi resmi [Server]. Pesan pemain diabaikan.
-            if msg.TextSource == nil and IsOfficialCatchMessage(text) then
+            -- Filter baru: pesan dengan ":" setelah nama pemain ditolak.
+            -- Pesan tangkapan tanpa ":" tetap diproses, termasuk dari chat yang direplikasi.
+            if IsOfficialCatchMessage(text) then
                 CheckAndSend(text)
             end
 
@@ -2314,12 +2316,8 @@ local function HookChat()
                 local text = tostring(d.Message)
                 if text == "" then return end
 
-                -- Legacy Chat hanya dipercaya bila pengirimnya System/Server
-                -- dan isi pesan cocok dengan format notifikasi resmi.
-                local speaker = tostring(d.FromSpeaker or d.Speaker or "")
-                local isSystemSpeaker = speaker:lower() == "system"
-                    or speaker:lower() == "server"
-                if isSystemSpeaker and IsOfficialCatchMessage(text) then
+                -- Gunakan filter baru yang sama: tanda ":" setelah nama ditolak.
+                if IsOfficialCatchMessage(text) then
                     CheckAndSend(text)
                 end
 
