@@ -2203,73 +2203,48 @@ local function SendGalatamaLeaderboard()
     PostWebhook(url, {username="M B G", avatar_url=WEBHOOK_AVATAR, embeds={BuildEmbed("🏆 LEADERBOARD GALATAMA", BuildGalatamaRulesText(), 16766720, fields, nil, nil, BRAND_FOOTER_TEXT)}})
 end
 
--- Anti-chat palsu tanpa mengandalkan warna:
--- 1) Pesan harus berasal dari jalur pesan sistem/server, bukan pesan pemain.
--- 2) Isi harus cocok dengan format notifikasi tangkapan Fish It yang lengkap.
--- Prefix teks seperti "[Server]" saja TIDAK dianggap bukti keaslian.
-local function HasExplicitFishColorMarkup(rawMsg)
-    if not rawMsg then return nil end
+-- Deteksi warna RichText pada BAGIAN NAMA IKAN.
+-- Catatan: ini hanya bisa bekerja jika sumber pesan benar-benar menyertakan
+-- markup <font color=...>. TextChatMessage.Text dapat saja sudah berupa teks
+-- polos; dalam kondisi itu warna tidak bisa disimpulkan dari string tersebut.
+local function HasColoredFishName(rawMsg)
+    if not rawMsg then return false end
     local raw = tostring(rawMsg)
     local obtainedStart = string.find(string.lower(raw), " obtained ", 1, true)
-    if not obtainedStart then return nil end
+    if not obtainedStart then return false end
 
     local fishSection = raw:sub(obtainedStart + #" obtained ")
+    -- Buang artikel a/an, lalu batasi sampai berat atau bagian peluang.
     fishSection = fishSection:gsub("^[Aa][Nn]%s+", "", 1)
     fishSection = fishSection:gsub("^[Aa]%s+", "", 1)
     fishSection = fishSection:match("^(.-)%s*%(%s*[%d%.]+%s*[kK][gG]%s*%)") or fishSection
     fishSection = fishSection:match("^(.-)%s+with a 1 in") or fishSection
 
-    local tag = fishSection:match("<font%s+[^>]*>")
-    if not tag then return nil end
-    local color = tag:match("[Cc][Oo][Ll][Oo][Rr]%s*=%s*['\"]([^'\"]+)['\"]")
-        or tag:match("[Cc][Oo][Ll][Oo][Rr]%s*=%s*([^%s>]+)")
-    if not color then return nil end
-
-    color = string.lower(color:gsub("%s+", ""))
-    if color == "#ffffff" or color == "#fff" or color == "white"
-        or color == "rgb(255,255,255)" then
-        return false
+    -- Harus ada tag font berwarna yang membungkus teks pada bagian nama ikan.
+    local openStart, openEnd = fishSection:find("<font%s+[^>]*color%s*=%s*['\"]?#[%w]+['\"]?[^>]*>")
+    if not openStart then
+        openStart, openEnd = fishSection:find("<font%s+[^>]*color%s*=%s*['\"]?[%w%(]+['\"]?[^>]*>")
     end
-    return true
+    if not openStart then return false end
+
+    local closeStart = fishSection:find("</font%s*>", openEnd + 1)
+    return closeStart ~= nil and closeStart > openEnd
 end
 
-local function IsOfficialCatchMessage(rawMsg, isSystemMessage)
+-- Pesan palsu dengan prefix "NamaPemain:" ditolak. Selain itu, pesan
+-- hanya lolos jika nama ikannya membawa markup warna RichText.
+local function IsOfficialCatchMessage(rawMsg)
     if not rawMsg then return false end
+    local raw = tostring(rawMsg)
+    local msg = Trim(StripTags(raw)):gsub("^%[Server%]:%s*", "", 1)
+    local obtainedStart = string.find(string.lower(msg), " obtained ", 1, true)
+    if not obtainedStart then return false end
 
-    -- Sebagian pengumuman Global dapat membawa TextSource. Dalam kondisi itu,
-    -- markup warna eksplisit pada nama ikan menjadi sinyal tambahan untuk
-    -- membedakan notifikasi event dari chat pemain biasa.
-    local colorResult = HasExplicitFishColorMarkup(rawMsg)
-    if isSystemMessage ~= true and colorResult ~= true then
-        return false
-    end
-
-    local msg = Trim(StripTags(tostring(rawMsg)))
-    msg = msg:gsub("^%[Server%]:%s*", "", 1)
-    msg = Trim(msg)
-    if msg == "" then return false end
-
-    -- Format resmi: Nama obtained a/an Ikan (berat kg) with a 1 in X chance!
-    -- Nama pemain tidak boleh mengandung prefix/sender palsu atau tanda titik dua.
-    local playerName, fishName, weight, chance = msg:match(
-        "^(.-) obtained an? (.-) %(([%d%.]+%s*[kK][gG])%) with a 1 in ([%d%.]+[KkMmBb]?) chance!?$"
-    )
-
-    if not playerName or not fishName or not weight or not chance then
-        return false
-    end
-
-    playerName = Trim(playerName)
-    fishName = Trim(fishName)
-
-    if playerName == "" or fishName == "" then return false end
-    if playerName:find(":", 1, true) or playerName:find("%[") then return false end
-    if fishName == "" or fishName:find("^%[") then return false end
-    if colorResult == false then return false end
-    -- Pesan sistem diterima meski markup tidak terbawa; pesan Global dengan
-    -- TextSource hanya diterima jika nama ikannya memiliki warna eksplisit.
-    return true
+    local playerPart = Trim(msg:sub(1, obtainedStart - 1))
+    if playerPart == "" or playerPart:find(":", 1, true) then return false end
+    return HasColoredFishName(raw)
 end
+
 
 local function CheckAndSend(rawMsg)
     if not SCRIPT_ACTIVE then return end
@@ -2455,13 +2430,8 @@ local function HookChat()
             local text = tostring(msg.Text or "")
             if text == "" then return end
 
-            -- Pesan System diterima meski TextSource tersedia pada sebagian
-            -- jalur Global. Pesan non-System dengan TextSource hanya lolos
-            -- jika format tangkapan valid dan nama ikan punya markup warna.
-            local messageType = tostring(msg.MessageType)
-            local isSystemMessage = (msg.TextSource == nil)
-                or messageType:find("System", 1, true) ~= nil
-            if IsOfficialCatchMessage(text, isSystemMessage) then
+            -- Samakan jalur deteksi tangkapan dengan script non-Galatama.
+            if IsOfficialCatchMessage(text) then
                 CheckAndSend(text)
             end
 
@@ -2482,14 +2452,8 @@ local function HookChat()
                 local text = tostring(d.Message)
                 if text == "" then return end
 
-                -- Pada Legacy Chat, hanya speaker sistem/server yang diterima.
-                local speaker = tostring(d.FromSpeaker or d.Speaker or "")
-                local isSystemMessage = (
-                    speaker == "System"
-                    or speaker == "Server"
-                    or speaker == "[Server]"
-                )
-                if IsOfficialCatchMessage(text, isSystemMessage) then
+                -- Samakan jalur deteksi tangkapan dengan script non-Galatama.
+                if IsOfficialCatchMessage(text) then
                     CheckAndSend(text)
                 end
 
