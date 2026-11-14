@@ -116,7 +116,7 @@ local MemberList = {
     { username = "makin2545",        display = "makin2545",            id = "1132125111508541493" },
     { username = "naurakori54",      display = "MICO",                 id = "444135915636391939" },
     { username = "Pacarparksungjin", display = "NIA",                  id = "1132125111508541493" },
-    { username = "kakcyn",           display = "kakcyn",               id = "429815854692040717" },
+    { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
     { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
     { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
 
@@ -2088,48 +2088,6 @@ local function StartAfkMonitor()
     end)
 end
 
--- Deteksi warna RichText pada BAGIAN NAMA IKAN.
--- Catatan: ini hanya bisa bekerja jika sumber pesan benar-benar menyertakan
--- markup <font color=...>. TextChatMessage.Text dapat saja sudah berupa teks
--- polos; dalam kondisi itu warna tidak bisa disimpulkan dari string tersebut.
-local function HasColoredFishName(rawMsg)
-    if not rawMsg then return false end
-    local raw = tostring(rawMsg)
-    local obtainedStart = string.find(string.lower(raw), " obtained ", 1, true)
-    if not obtainedStart then return false end
-
-    local fishSection = raw:sub(obtainedStart + #" obtained ")
-    -- Buang artikel a/an, lalu batasi sampai berat atau bagian peluang.
-    fishSection = fishSection:gsub("^[Aa][Nn]%s+", "", 1)
-    fishSection = fishSection:gsub("^[Aa]%s+", "", 1)
-    fishSection = fishSection:match("^(.-)%s*%(%s*[%d%.]+%s*[kK][gG]%s*%)") or fishSection
-    fishSection = fishSection:match("^(.-)%s+with a 1 in") or fishSection
-
-    -- Harus ada tag font berwarna yang membungkus teks pada bagian nama ikan.
-    local openStart, openEnd = fishSection:find("<font%s+[^>]*color%s*=%s*['\"]?#[%w]+['\"]?[^>]*>")
-    if not openStart then
-        openStart, openEnd = fishSection:find("<font%s+[^>]*color%s*=%s*['\"]?[%w%(]+['\"]?[^>]*>")
-    end
-    if not openStart then return false end
-
-    local closeStart = fishSection:find("</font%s*>", openEnd + 1)
-    return closeStart ~= nil and closeStart > openEnd
-end
-
--- Pesan palsu dengan prefix "NamaPemain:" ditolak. Selain itu, pesan
--- hanya lolos jika nama ikannya membawa markup warna RichText.
-local function IsOfficialCatchMessage(rawMsg)
-    if not rawMsg then return false end
-    local raw = tostring(rawMsg)
-    local msg = Trim(StripTags(raw)):gsub("^%[Server%]:%s*", "", 1)
-    local obtainedStart = string.find(string.lower(msg), " obtained ", 1, true)
-    if not obtainedStart then return false end
-
-    local playerPart = Trim(msg:sub(1, obtainedStart - 1))
-    if playerPart == "" or playerPart:find(":", 1, true) then return false end
-    return HasColoredFishName(raw)
-end
-
 local function CheckAndSend(rawMsg)
     if not SCRIPT_ACTIVE then return end
     if not string.find(string.lower(rawMsg), "obtained") then return end
@@ -2311,11 +2269,10 @@ local function HookChat()
             local text = tostring(msg.Text or "")
             if text == "" then return end
 
-            -- Filter baru: pesan dengan ":" setelah nama pemain ditolak.
-            -- Pesan tangkapan tanpa ":" tetap diproses, termasuk dari chat yang direplikasi.
-            if IsOfficialCatchMessage(text) then
-                CheckAndSend(text)
-            end
+            -- Jangan lagi bergantung pada TextSource == nil. Pesan chat pemain
+            -- tetap diproses untuk command, sedangkan CheckAndSend() hanya
+            -- dijalankan untuk pesan yang memang berisi hasil catch.
+            CheckAndSend(text)
 
             if IsCheckPlayerCommand(text) and SCRIPT_ACTIVE then
                 local senderUserId = msg.TextSource and msg.TextSource.UserId or 0
@@ -2334,9 +2291,9 @@ local function HookChat()
                 local text = tostring(d.Message)
                 if text == "" then return end
 
-                -- Event legacy biasanya hanya memberi teks polos, tanpa metadata
-                -- warna. Karena itu ia hanya lolos bila markup warna memang ada.
-                if IsOfficialCatchMessage(text) then
+                -- Legacy Chat tetap menjadi fallback untuk detector catch.
+                local lowerMsg = string.lower(text)
+                if string.find(lowerMsg, "%[server%]") or string.find(lowerMsg, "obtained") then
                     CheckAndSend(text)
                 end
 
@@ -2915,7 +2872,7 @@ local function CreateUI()
     topBarFix.BackgroundColor3 = Color3.fromRGB(30, 30, 30); topBarFix.BorderSizePixel = 0; topBarFix.Parent = topBar
 
     local title = Instance.new("TextLabel")
-    title.Text = "🎣 Main Bareng Gengz Monitor (14 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
+    title.Text = "🎣 Main Bareng Gengz Monitor (12 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
     title.BackgroundTransparency = 1; title.TextColor3 = Color3.fromRGB(255, 255, 255)
     title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left; title.Parent = topBar
 
