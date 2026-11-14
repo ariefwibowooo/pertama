@@ -1419,9 +1419,20 @@ local function SendFishWebhook(title, description, color, fields, imageUrl, thum
     if url == "" then return end
     local f = {}
     for _, v in ipairs(fields) do table.insert(f, v) end
+
+    local embed = BuildEmbed(title, description, color, f, imageUrl, thumbUrl)
+    -- Tambahkan teks promosi hanya pada webhook Secret dan Forgotten.
+    -- Footer bawaan beserta tanggal/waktu tetap dipertahankan.
+    if title == (EMOJI_FORGOTTEN .. " Forgotten Tier Detected!")
+        or title == (EMOJI_NOTIF .. " Secret Fish Detected!") then
+        embed.footer = embed.footer or {}
+        embed.footer.text = (embed.footer.text or "")
+            .. "\nYoutube Premium & Aplikasi Premium lainnya bisa order di @ariefwibowooo"
+    end
+
     PostWebhook(url, {
         content = BuildContent(mention, captionType),
-        embeds  = { BuildEmbed(title, description, color, f, imageUrl, thumbUrl) },
+        embeds  = { embed },
     })
 end
 
@@ -2872,7 +2883,7 @@ local function CreateUI()
     topBarFix.BackgroundColor3 = Color3.fromRGB(30, 30, 30); topBarFix.BorderSizePixel = 0; topBarFix.Parent = topBar
 
     local title = Instance.new("TextLabel")
-    title.Text = "🎣 Main Bareng Gengz Monitor (12 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
+    title.Text = "🎣 Main Bareng Gengz Monitor (15 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
     title.BackgroundTransparency = 1; title.TextColor3 = Color3.fromRGB(255, 255, 255)
     title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left; title.Parent = topBar
 
