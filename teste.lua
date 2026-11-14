@@ -1419,9 +1419,23 @@ local function SendFishWebhook(title, description, color, fields, imageUrl, thum
     if url == "" then return end
     local f = {}
     for _, v in ipairs(fields) do table.insert(f, v) end
+
+    local embed = BuildEmbed(title, description, color, f, imageUrl, thumbUrl)
+    -- Tambahkan teks promosi hanya pada webhook Secret dan Forgotten.
+    -- Footer bawaan beserta tanggal/waktu tetap dipertahankan.
+    if title == (EMOJI_FORGOTTEN .. " Forgotten Tier Detected!")
+        or title == (EMOJI_NOTIF .. " Secret Fish Detected!") then
+        embed.footer = embed.footer or {}
+        embed.footer.text = (embed.footer.text or "")
+            .. "\nYoutube Premium & Aplikasi Premium lainnya bisa order di @ariefwibowooo"
+        -- Hilangkan timestamp Discord agar tidak muncul tulisan "•Today at ...".
+        -- Tanggal dan jam tetap tampil di teks footer yang dibuat BuildEmbed().
+        embed.timestamp = nil
+    end
+
     PostWebhook(url, {
         content = BuildContent(mention, captionType),
-        embeds  = { BuildEmbed(title, description, color, f, imageUrl, thumbUrl) },
+        embeds  = { embed },
     })
 end
 
