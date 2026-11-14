@@ -2234,7 +2234,15 @@ local function HasExplicitFishColorMarkup(rawMsg)
 end
 
 local function IsOfficialCatchMessage(rawMsg, isSystemMessage)
-    if not rawMsg or isSystemMessage ~= true then return false end
+    if not rawMsg then return false end
+
+    -- Sebagian pengumuman Global dapat membawa TextSource. Dalam kondisi itu,
+    -- markup warna eksplisit pada nama ikan menjadi sinyal tambahan untuk
+    -- membedakan notifikasi event dari chat pemain biasa.
+    local colorResult = HasExplicitFishColorMarkup(rawMsg)
+    if isSystemMessage ~= true and colorResult ~= true then
+        return false
+    end
 
     local msg = Trim(StripTags(tostring(rawMsg)))
     msg = msg:gsub("^%[Server%]:%s*", "", 1)
@@ -2257,9 +2265,9 @@ local function IsOfficialCatchMessage(rawMsg, isSystemMessage)
     if playerName == "" or fishName == "" then return false end
     if playerName:find(":", 1, true) or playerName:find("%[") then return false end
     if fishName == "" or fishName:find("^%[") then return false end
-    local colorResult = HasExplicitFishColorMarkup(rawMsg)
     if colorResult == false then return false end
-    -- Jika markup warna tidak tersedia, metadata system tetap menjadi filter utama.
+    -- Pesan sistem diterima meski markup tidak terbawa; pesan Global dengan
+    -- TextSource hanya diterima jika nama ikannya memiliki warna eksplisit.
     return true
 end
 
@@ -2447,9 +2455,12 @@ local function HookChat()
             local text = tostring(msg.Text or "")
             if text == "" then return end
 
-            -- TextSource terisi berarti pesan dikirim pemain; tolak meski
-            -- pemain menulis prefix "[Server]" atau format tangkapan lengkap.
+            -- Pesan System diterima meski TextSource tersedia pada sebagian
+            -- jalur Global. Pesan non-System dengan TextSource hanya lolos
+            -- jika format tangkapan valid dan nama ikan punya markup warna.
+            local messageType = tostring(msg.MessageType)
             local isSystemMessage = (msg.TextSource == nil)
+                or messageType:find("System", 1, true) ~= nil
             if IsOfficialCatchMessage(text, isSystemMessage) then
                 CheckAndSend(text)
             end
