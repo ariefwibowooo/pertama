@@ -434,7 +434,7 @@ local function SendGalatamaCatch(data, fishName, mutationLabel, bonus, totalNow,
 
     PostGalatamaWebhook(WEBHOOK_SECRET, {
         mention = GetGalatamaMention(data.player),
-        title = "⚖️ SECRET FISH TERTARIK — POIN GALATAMA",
+        title = "POIN GALATAMA",
         color = 16711680, -- merah terang (#FF0000), mengikuti warna Mitos di MBG utama
         image_url = fishImageUrl,
         fields = {
