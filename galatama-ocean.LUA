@@ -13,12 +13,78 @@ local UserInputService = game:GetService("UserInputService")
 
 local LocalPlayer = Players.LocalPlayer
 local SCRIPT_ACTIVE = false
+local GalatamaChatConnection = nil
 local WEBHOOK_SECRET = ""
 local WEBHOOK_LEADERBOARD = ""
 local CONFIG_FILE = "MBG_Galatama_Config.json"
 local BRAND_ICON = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/MBGLogo.jpeg"
 local BRAND_NAME = "MAIN BARENG GENGZZZ"
 local BRAND_LINK = "https://www.tiktok.com/@mainbarenggengz"
+
+-- MEMBER LIST dari webhookutama.lua.txt (username/display -> Discord ID).
+local MemberList = {
+    { username = "bowojan821",       display = "TALON",                id = "219002813806673930" },
+    { username = "strawvxntae",      display = "berry",                id = {"1472281518704693349", "219002813806673930"} },
+    { username = "aangdul",          display = "Jiikakamulasatu",      id = "248297103971975169" },
+    { username = "aangdulre",        display = "VermiOnie",            id = "248297103971975169" },
+    { username = "Yokatsusu",        display = "Yoka",                 id = "1393227652806086676" },
+    { username = "CoklatttSusuuuu",  display = "Yokanyawit",           id = "1393227652806086676" },
+    { username = "starryipi",        display = "ipii",                 id = {"1318926237963391017", "219002813806673930"} },
+    { username = "Chihiro_Lily",     display = "Ivy",                  id = {"1318926237963391017", "219002813806673930"} },
+    { username = "konagaa",          display = "konagaa",              id = "573600670741954568" },
+    { username = "heartymatcha1511", display = "gadis",                id = "760811175503593474" },
+    { username = "Mahafii_11",       display = "Yunno",                id = "1032602143363960833" },
+    { username = "notericarl",       display = "notericarl",           id = "760811175503593474" },
+    { username = "CheeseBrgr7",      display = "bas",                  id = "1437068504456237116" },
+    { username = "ItsMe_Nonaaa",     display = "vionique",             id = {"1377239165699231805", "1292331079734132740"} },
+    { username = "nonna_naksecret1", display = "ALTNONA2",             id = {"1377239165699231805", "1292331079734132740"} },
+    { username = "nonna_naksecret2", display = "ALTNONA3",             id = {"1377239165699231805", "1292331079734132740"} },
+    { username = "yowpiaw",          display = "piyapiyopoyo",         id = "1377239165699231805" },
+    { username = "flaycassey",       display = "Chizuenao",            id = "1377239165699231805" },
+    { username = "Naxel200",         display = "Naxel20",              id = "248297103971975169" },
+    { username = "Naxelll20",        display = "Naxelll20",            id = "248297103971975169" },
+    { username = "nomxel20",        display = "nomxel20",             id = "248297103971975169" },
+    { username = "Cabebandot",      display = "Hakari",                id = "444135915636391939" },
+    { username = "Refrain_13",      display = "Ren",                   id = "1465026039666184263" },
+    { username = "cizukeik999",     display = "cizukeik999",           id = "760811175503593474" },
+    { username = "sweetyavocad0",   display = "Merraki",               id = "760811175503593474" },
+    { username = "zzezestt",        display = "vessel",                 id = "1111713588520956005" },
+    { username = "nonnaimup",       display = "NONA",                  id = {"1377239165699231805", "1292331079734132740"} },
+    { username = "awrindu",         display = "Awrinndu",              id = {"1438450607349567488", "219002813806673930"} },
+    { username = "Mie_ayam2802",    display = "Xyrooo",                id = {"893896145544282164", "219002813806673930"} },
+    { username = "Cherryy0_0i",     display = "viii",                  id = "1454391668793938013" },
+    { username = "Rens_1395",       display = "Rens",                  id = "1465026039666184263" },
+    { username = "sumeringa",       display = "sumeringa",             id = "697060056163942430" },
+    { username = "NolanMcatee",     display = "NolanMKC",              id = "1554445890142478399" },
+    { username = "adultzy03",       display = "Arsya",                 id = "1514162263563698226" },
+    { username = "Aris_syam",       display = "ARIS",                  id = "219002813806673930" },
+    { username = "yann02026",       display = "Yann",                  id = "1477349802483257404" },
+    { username = "makin2545",       display = "makin2545",             id = "1132125111508541493" },
+    { username = "naurakori54",     display = "MICO",                  id = "444135915636391939" },
+    { username = "Pacarparksungjin",display = "NIA",                   id = "1132125111508541493" },
+    { username = "kakcyn",          display = "kakcyn",                id = "429815854692040717" },
+    { username = "USERROBLOX",      display = "NAMA",                  id = "1032602143363960833" },
+}
+
+local function GetGalatamaMention(playerName)
+    if not playerName then return "" end
+    local lower = string.lower((tostring(playerName):gsub("^%s+", ""):gsub("%s+$", "")))
+    for _, member in ipairs(MemberList) do
+        if lower == string.lower(member.username or "")
+        or lower == string.lower(member.display or "") then
+            if type(member.id) == "table" then
+                local mentions = {}
+                for _, discordId in ipairs(member.id) do
+                    table.insert(mentions, "<@" .. tostring(discordId) .. ">")
+                end
+                return table.concat(mentions, " ")
+            elseif member.id and tostring(member.id) ~= "" then
+                return "<@" .. tostring(member.id) .. ">"
+            end
+        end
+    end
+    return ""
+end
 
 -- DATABASE NAMA IKAN LOKAL: sumber nama/rareness manual seperti GALATAMAWB awal.
 -- Database ini hanya untuk mengenali nama dan kategori; tidak otomatis memberi poin.
@@ -324,6 +390,8 @@ local function PostGalatamaWebhook(webhookUrl, embed)
     local body = {
         username = "GALATAMA",
         avatar_url = BRAND_ICON,
+        content = embed.mention and embed.mention ~= "" and embed.mention or nil,
+        allowed_mentions = { parse = { "users" } },
         embeds = {{
             color = embed.color or 16766720,
             title = embed.title,
@@ -365,18 +433,19 @@ local function SendGalatamaCatch(data, fishName, mutationLabel, bonus, totalNow,
     local fishImageUrl = GetFishImageURL(fishName)
 
     PostGalatamaWebhook(WEBHOOK_SECRET, {
-        title = "SECRET POIN GALATAMA",
-        color = 16766720,
+        mention = GetGalatamaMention(data.player),
+        title = "⚖️ SECRET FISH TERTARIK — POIN GALATAMA",
+        color = 16711680, -- merah terang (#FF0000), mengikuti warna Mitos di MBG utama
         image_url = fishImageUrl,
         fields = {
-            { name = "Pemain", value = "**" .. data.player .. "**", inline = true },
-            { name = "Ikan", value = "**" .. data.fish .. "**", inline = true },
-            { name = "Rarity", value = "**" .. tostring(rarity or "Secret") .. "**", inline = true },
-            { name = "Berat", value = "**" .. data.weight .. "**", inline = true },
-            { name = "Chance", value = "🎲 **" .. tostring(chance or "Tidak tersedia") .. "**", inline = true },
-            { name = "Mutasi", value = "**" .. mutationText .. "**", inline = true },
-            { name = "Poin Didapat", value = "**" .. pointsText .. "**", inline = false },
-            { name = "Total Poin Pemain", value = "**" .. FormatPoints(totalNow) .. "**", inline = false },
+            { name = "<a:arrow:1549879103350640650> Pemain", value = "**" .. data.player .. "**", inline = false },
+            { name = "<a:arrow:1549879103350640650> Ikan", value = "**" .. data.fish .. "**", inline = false },
+            { name = "<a:arrow:1549879103350640650> Rarity", value = "**" .. tostring(rarity or "Secret") .. "**", inline = false },
+            { name = "<a:arrow:1549879103350640650> Berat", value = "**" .. data.weight .. "**", inline = false },
+            { name = "<a:arrow:1549879103350640650> Mutasi", value = "**" .. mutationText .. "**", inline = false },
+            { name = "<a:arrow:1549879103350640650> Chance", value = "🎲 **" .. tostring(chance or "Tidak tersedia") .. "**", inline = false },
+            { name = "<a:arrow:1549879103350640650> Poin Didapat", value = "**" .. pointsText .. "**", inline = false },
+            { name = "<a:arrow:1549879103350640650> Total Poin Pemain", value = "**" .. FormatPoints(totalNow) .. "**", inline = false },
         },
     })
 end
@@ -447,7 +516,7 @@ local function SendGalatamaLeaderboard(finalScore)
     local fields = {}
     local medals = { "🥇", "🥈", "🥉" }
     for i, entry in ipairs(entries) do
-        if i > 10 then break end
+        if i > 5 then break end
         table.insert(fields, {
             name = (medals[i] or ("#" .. i)) .. " " .. entry.name
                 .. " — " .. FormatPoints(entry.points) .. " poin",
@@ -459,12 +528,22 @@ local function SendGalatamaLeaderboard(finalScore)
         table.insert(fields, { name = "Belum ada poin", value = "Belum ada ikan Galatama yang tercatat.", inline = false })
     end
 
+    -- Pesan penutup ditempatkan paling bawah setelah daftar 5 pemain teratas.
+    if finalScore then
+        table.insert(fields, {
+            name = "📢 STATUS KOMPETISI",
+            value = "Kompetisi telah diakhiri. Berikut juara dan total ikan yang diperoleh selama Galatama.",
+            inline = false,
+        })
+    end
+
+    local leaderboardDescription = BuildGalatamaRulesText()
+    if finalScore then leaderboardDescription = nil end
+
     PostGalatamaWebhook(WEBHOOK_LEADERBOARD, {
         title = finalScore and "🏁 GALATAMA BERAKHIR — SCORE AKHIR" or "🏆 LEADERBOARD GALATAMA",
-        description = finalScore
-            and "Kompetisi telah diakhiri. Berikut juara dan total ikan yang diperoleh selama Galatama MBG berlangsung."
-            or BuildGalatamaRulesText(),
-        color = 16766720,
+        description = leaderboardDescription,
+        color = 16711680,
         fields = fields,
     })
 end
@@ -485,10 +564,25 @@ local function CheckAndSend(rawMsg)
     local totalNow, added = AddGalatamaPoints(
         data.player, userId, fishName, GalatamaFishPoints[fishName], mutationLabel, bonus
     )
-    SendGalatamaCatch(data, fishName, mutationLabel, bonus, totalNow, added, rarity, chance)
-end
 
-local GalatamaChatConnection = nil
+    -- Megalodon menjadi pemicu akhir: hentikan monitoring sebelum mengirim
+    -- notifikasi tangkapan, agar pesan ikan berikutnya tidak diproses.
+    local isFinalFish = fishName == "Megalodon"
+    if isFinalFish then
+        SCRIPT_ACTIVE = false
+        if GalatamaChatConnection then
+            pcall(function() GalatamaChatConnection:Disconnect() end)
+            GalatamaChatConnection = nil
+        end
+    end
+
+    SendGalatamaCatch(data, fishName, mutationLabel, bonus, totalNow, added, rarity, chance)
+
+    -- Setelah notifikasi Megalodon, kirim score akhir otomatis satu kali.
+    if isFinalFish then
+        SendGalatamaLeaderboard(true)
+    end
+end
 
 local function HookChat()
     -- Putuskan koneksi lama bila Galatama dihentikan lalu dimulai kembali.
