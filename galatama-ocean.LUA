@@ -543,7 +543,7 @@ local function SendGalatamaLeaderboard(finalScore)
     PostGalatamaWebhook(WEBHOOK_LEADERBOARD, {
         title = finalScore and "🏁 GALATAMA BERAKHIR — SCORE AKHIR" or "🏆 LEADERBOARD GALATAMA",
         description = leaderboardDescription,
-        color = 16711680,
+        color = 5763719, -- hijau sama seperti pengumuman START GALATAMA
         fields = fields,
     })
 end
