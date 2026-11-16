@@ -145,9 +145,10 @@ local REVISIT_COOLDOWN = 90
 local POSITION_BUCKET_SIZE = 4
 local lastMinedAtByPosition = {}
 
--- Posisi crystal yang dikecualikan berdasarkan CFrame dari Properties Roblox.
--- Radius toleransi agar posisi tetap terdeteksi meskipun ada selisih desimal kecil.
-local EXCLUDED_CRYSTAL_RADIUS = 8
+-- Posisi crystal yang dikecualikan berdasarkan koordinat X/Z dari Properties Roblox.
+-- Y sengaja tidak dibandingkan agar crystal tetap terblokir walaupun MeshPart
+-- memiliki perbedaan tinggi/offset posisi atau titik berdirinya berada di atas.
+local EXCLUDED_CRYSTAL_RADIUS = 16
 local EXCLUDED_CRYSTAL_POSITIONS = {
     Vector3.new(37.603, 33.636, 277.135),
     Vector3.new(18.942, 28.276, 247.343),
@@ -166,7 +167,9 @@ local EXCLUDED_CRYSTAL_POSITIONS = {
 local function isExcludedCrystal(crystal)
     local position = crystal.Position
     for _, excludedPosition in ipairs(EXCLUDED_CRYSTAL_POSITIONS) do
-        if (position - excludedPosition).Magnitude <= EXCLUDED_CRYSTAL_RADIUS then
+        local dx = position.X - excludedPosition.X
+        local dz = position.Z - excludedPosition.Z
+        if (dx * dx + dz * dz) <= (EXCLUDED_CRYSTAL_RADIUS * EXCLUDED_CRYSTAL_RADIUS) then
             return true
         end
     end
@@ -1378,6 +1381,10 @@ end
 
 local function mineOneCrystal(target)
     if not running or not characterReady or not target or not target.Parent then return false end
+    if isExcludedCrystal(target) then
+        status.Text = "Crystal di lokasi pengecualian - skip"
+        return false
+    end
 
     local initialHP = getHP(target)
     if not initialHP or initialHP <= 0 then return false end
@@ -1448,7 +1455,8 @@ local function mineOneCrystal(target)
     -- Hadapkan karakter ke Crystal setelah tiba, tanpa memindahkan posisinya.
     local lookAt = Vector3.new(target.Position.X, root.Position.Y, target.Position.Z)
     root.CFrame = CFrame.lookAt(root.Position, lookAt)
-    status.Text = "Tiba di Crystal - menyiapkan 3 hit"
+    status.Text = "Tiba di Crystal - menunggu 1,5 detik..."
+    if not waitActive(1.5) then return false end
 
     -- Jangan pindah hanya karena label HP terlambat diperbarui.
     -- Kirim 3 aktivasi berurutan dengan jeda sesuai cooldown pickaxe.
