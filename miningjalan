@@ -32,7 +32,7 @@ local DISTANCE = 2.5
 
 local ROOT_HEIGHT = 3
 
-local HIT_DELAY = 0.55 -- jeda antar-hit; cooldown pickaxe tetap membatasi aktivasi
+local HIT_DELAY = 1.0 -- jeda antar-hit; cooldown pickaxe tetap membatasi aktivasi
 
 local PICKAXE_COOLDOWN = 1.5 -- cooldown lokal Basic Pickaxe
 
@@ -149,18 +149,18 @@ local lastMinedAtByPosition = {}
 -- Radius toleransi agar posisi tetap terdeteksi meskipun ada selisih desimal kecil.
 local EXCLUDED_CRYSTAL_RADIUS = 8
 local EXCLUDED_CRYSTAL_POSITIONS = {
-    Vector3.new(37.603, 3.636, 277.135),
+    Vector3.new(37.603, 33.636, 277.135),
     Vector3.new(18.942, 28.276, 247.343),
     Vector3.new(-113.33, 33.281, 369),
-    Vector3.new(134, 24.894, 306),
+    Vector3.new(-134, 24.894, 306),
     Vector3.new(-171, 9, 253.51),
     Vector3.new(-123.908, -2.822, 210.508),
     Vector3.new(-137, 0.49, 237.128),
-    Vector3.new(0.25, -1.611, 196),
+    Vector3.new(-70.25, -1.611, 196),
     Vector3.new(-221.153, 12.006, 223.611),
     Vector3.new(-171.122, 2.406, 165.244),
     Vector3.new(-193.014, 1.973, 193.48),
-    Vector3.new(149.8, 14.536, 148.602),
+    Vector3.new(-149.8, 14.536, 148.602),
 }
 
 local function isExcludedCrystal(crystal)
