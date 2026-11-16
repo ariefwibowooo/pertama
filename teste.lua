@@ -1363,7 +1363,7 @@ local function SendWebhook(title, description, color, fields, imageUrl, thumbUrl
     local f = {}
     for _, v in ipairs(fields) do table.insert(f, v) end
     PostWebhook(WEBHOOK_URL, {
-        username   = "M B G",
+        username   = "SEVER GADISSS",
         avatar_url = WEBHOOK_AVATAR,
         content    = BuildContent(mention, captionType),
         embeds     = { BuildEmbed(title, description, color, f, imageUrl, thumbUrl) },
@@ -1384,7 +1384,7 @@ local function SendMonitorStartedWebhook(allPlayers, names)
     end
 
     PostWebhook(url, {
-        username   = "M B G",
+        username   = "SEVER GADISSS",
         avatar_url = WEBHOOK_AVATAR,
         embeds     = { BuildEmbed(
             EMOJI_STARTER .. " Monitor Started",
@@ -1407,9 +1407,9 @@ local function SendMonitorStoppedWebhook()
     end
 
     PostWebhook(url, {
-        username   = "M B G",
+        username   = "SEVER GADISSS",
         avatar_url = WEBHOOK_AVATAR,
-        embeds     = { { title = "🔴 Webhook off dulu, silahkan cek tas masing masing" } },
+        embeds     = { { title = "🔴 WEBHOOK SEVER GADIS off dulu, silahkan cek akun masing masing" } },
     }, true)
 end
 
@@ -2831,7 +2831,7 @@ local function StartMonitoring()
                 LeaveTimers[pId] = nil
                 local notBackContent = BuildContent(mentionStr, "notback")
                 PostWebhook(WEBHOOK_URL, {
-                    username   = "M B G",
+                    username   = "SEVER GADISSS",
                     avatar_url = WEBHOOK_AVATAR,
                     content    = notBackContent,
                     embeds     = { BuildEmbed(EMOJI_NOTBACK .. " Player Tidak Kembali", "Pemain ini belum balik lagi ke server, semoga aman ya~", TierColors.NotBack, {
@@ -2886,7 +2886,7 @@ local function CreateUI()
     topBarFix.BackgroundColor3 = Color3.fromRGB(30, 30, 30); topBarFix.BorderSizePixel = 0; topBarFix.Parent = topBar
 
     local title = Instance.new("TextLabel")
-    title.Text = "🎣 Main Bareng Gengz Monitor (12 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
+    title.Text = "🎣 Main Bareng Gengz Monitor (16 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
     title.BackgroundTransparency = 1; title.TextColor3 = Color3.fromRGB(255, 255, 255)
     title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left; title.Parent = topBar
 
