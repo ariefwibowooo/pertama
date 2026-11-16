@@ -32,7 +32,7 @@ local DISTANCE = 2.5
 
 local ROOT_HEIGHT = 3
 
-local HIT_DELAY = 1.6
+local HIT_DELAY = 0.05 -- jeda pemeriksaan; cooldown pickaxe tetap membatasi aktivasi
 
 local PICKAXE_COOLDOWN = 1.5 -- cooldown lokal Basic Pickaxe
 
@@ -67,6 +67,8 @@ local autoSellBusy = false
 local destroyed = false
 
 local lastPickaxeActivateAt = -math.huge
+local characterReady = player.Character ~= nil
+local completedCrystalCount = 0
 
 
 
@@ -160,11 +162,12 @@ local function refreshTargets()
 
     -- Tetap scan folder Crystal yang dipakai versi terbaik.
     for _, crystal in ipairs(folder:GetChildren()) do
+        local hp = getHP(crystal)
         if crystal:IsA("BasePart")
             and crystal.Transparency < 0.95
             and crystal:IsDescendantOf(workspace)
-            and getHP(crystal) ~= nil
-            and getHP(crystal) > 0 then
+            and hp ~= nil
+            and hp > 0 then
 
             local key = getPositionKey(crystal)
             if not seenPositions[key] then
@@ -990,10 +993,8 @@ local function activatePickaxe()
 
     if elapsed < PICKAXE_COOLDOWN then
 
-        -- Attempt immediately after teleport; if the tool is still locked,
-
-        -- wait only for its known remaining cooldown and activate once.
-
+        -- Tidak melakukan spam yang melewati cooldown.
+        -- Tunggu hanya sisa cooldown, lalu kirim satu aktivasi yang sah.
         local remaining = PICKAXE_COOLDOWN - elapsed
 
         if remaining > 0 and not waitActive(remaining) then return false end
@@ -1027,7 +1028,7 @@ end
 -- immediately on arrival (subject only to the pickaxe's built-in cooldown).
 
 local function mineOneCrystal(target)
-    if not running or not target or not target.Parent then return false end
+    if not running or not characterReady or not target or not target.Parent then return false end
 
     local initialHP = getHP(target)
     if not initialHP or initialHP <= 0 then return false end
@@ -1062,7 +1063,7 @@ local function mineOneCrystal(target)
     -- Jangan pindah hanya karena label HP terlambat diperbarui.
     -- Kirim 3 aktivasi berurutan dengan jeda sesuai cooldown pickaxe.
     for hit = 1, 3 do
-        if not running then return false end
+        if not running or not characterReady then return false end
         if not target.Parent then
             status.Text = "Crystal sudah hilang"
             return true
@@ -1093,8 +1094,13 @@ local function mineOneCrystal(target)
                 return true
             end
         else
-            task.wait(NEXT_CRYSTAL_DELAY)
-            status.Text = "3 hit dikirim - lanjut target berikutnya"
+            if not waitActive(NEXT_CRYSTAL_DELAY) then return false end
+            local finalHP = target.Parent and getHP(target) or 0
+            if not target.Parent or (finalHP and finalHP <= 0) then
+                status.Text = "Crystal terkonfirmasi selesai"
+            else
+                status.Text = "3 hit terkirim - hasil menunggu update server"
+            end
             return true
         end
     end
@@ -1110,6 +1116,10 @@ local function miningLoop()
 
     while running do
 
+        if not characterReady then
+            status.Text = "Menunggu karakter respawn..."
+            if not waitActive(0.5) then break end
+        else
         local targets = refreshTargets()
 
         if #targets == 0 then
@@ -1136,6 +1146,8 @@ local function miningLoop()
                     if completed then
                         -- Catat setelah rangkaian mining selesai, bukan sebelum mulai.
                         lastMinedAtByPosition[targetInfo.positionKey] = os.clock()
+                        completedCrystalCount = completedCrystalCount + 1
+                        status.Text = "Siklus selesai: " .. completedCrystalCount
                     end
                     break
 
@@ -1145,6 +1157,7 @@ local function miningLoop()
 
             if not found and not waitActive(0.5) then break end
 
+        end
         end
 
     end
@@ -1843,16 +1856,25 @@ end)
 
 
 
-player.CharacterAdded:Connect(function()
-
+player.CharacterAdded:Connect(function(character)
+    characterReady = false
     task.wait(1)
 
-    if noAnimation and not destroyed then
+    if destroyed then return end
 
-        setNoAnimation(true)
-
+    local root = character:FindFirstChild("HumanoidRootPart")
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if root and humanoid and humanoid.Health > 0 then
+        characterReady = true
+        if noAnimation then
+            setNoAnimation(true)
+        end
+        if running then
+            status.Text = "Karakter siap - mining dilanjutkan"
+        end
+    else
+        status.Text = "Karakter belum siap"
     end
-
 end)
 
 
