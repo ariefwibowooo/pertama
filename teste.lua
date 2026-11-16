@@ -1409,7 +1409,7 @@ local function SendMonitorStoppedWebhook()
     PostWebhook(url, {
         username   = "SERVER GADISSS",
         avatar_url = WEBHOOK_AVATAR,
-        embeds     = { { title = "🔴 WEBHOOK SEVER GADIS off dulu, silahkan cek akun masing masing" } },
+        embeds     = { { title = "🔴 WEBHOOK SERVER GADIS off dulu, silahkan cek akun masing masing" } },
     }, true)
 end
 
