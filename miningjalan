@@ -32,7 +32,7 @@ local DISTANCE = 2.5
 
 local ROOT_HEIGHT = 3
 
-local HIT_DELAY = 0.05 -- jeda pemeriksaan; cooldown pickaxe tetap membatasi aktivasi
+local HIT_DELAY = 0.55 -- jeda antar-hit; cooldown pickaxe tetap membatasi aktivasi
 
 local PICKAXE_COOLDOWN = 1.5 -- cooldown lokal Basic Pickaxe
 
@@ -145,6 +145,34 @@ local REVISIT_COOLDOWN = 90
 local POSITION_BUCKET_SIZE = 4
 local lastMinedAtByPosition = {}
 
+-- Posisi crystal yang dikecualikan berdasarkan CFrame dari Properties Roblox.
+-- Radius toleransi agar posisi tetap terdeteksi meskipun ada selisih desimal kecil.
+local EXCLUDED_CRYSTAL_RADIUS = 8
+local EXCLUDED_CRYSTAL_POSITIONS = {
+    Vector3.new(37.603, 3.636, 277.135),
+    Vector3.new(18.942, 28.276, 247.343),
+    Vector3.new(-113.33, 33.281, 369),
+    Vector3.new(134, 24.894, 306),
+    Vector3.new(-171, 9, 253.51),
+    Vector3.new(-123.908, -2.822, 210.508),
+    Vector3.new(-137, 0.49, 237.128),
+    Vector3.new(0.25, -1.611, 196),
+    Vector3.new(-221.153, 12.006, 223.611),
+    Vector3.new(-171.122, 2.406, 165.244),
+    Vector3.new(-193.014, 1.973, 193.48),
+    Vector3.new(149.8, 14.536, 148.602),
+}
+
+local function isExcludedCrystal(crystal)
+    local position = crystal.Position
+    for _, excludedPosition in ipairs(EXCLUDED_CRYSTAL_POSITIONS) do
+        if (position - excludedPosition).Magnitude <= EXCLUDED_CRYSTAL_RADIUS then
+            return true
+        end
+    end
+    return false
+end
+
 local function getPositionKey(crystal)
     local p = crystal.Position
     return string.format(
@@ -166,6 +194,7 @@ local function refreshTargets()
         if crystal:IsA("BasePart")
             and crystal.Transparency < 0.95
             and crystal:IsDescendantOf(workspace)
+            and not isExcludedCrystal(crystal)
             and hp ~= nil
             and hp > 0 then
 
@@ -1215,52 +1244,62 @@ end)
 
 
 
--- DRAG PANEL BY HEADER
+-- DRAG PANEL BY HEADER (MOUSE + TOUCH / MOBILE)
+local panelDragging = false
+local panelDragStart = nil
+local panelStartPos = nil
+local panelDragInput = nil
 
-local panelDragging, panelDragStart, panelStartPos = false, nil, nil
+local function stopPanelDrag(input)
+    if not panelDragging then return end
+    if input == nil or input == panelDragInput
+        or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        panelDragging = false
+        panelDragInput = nil
+    end
+end
 
 topBar.InputBegan:Connect(function(input)
-
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
         panelDragging = true
-
+        panelDragInput = input
         panelDragStart = input.Position
-
         panelStartPos = frame.Position
-
     end
-
 end)
 
 topBar.InputEnded:Connect(function(input)
-
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-
-        panelDragging = false
-
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        stopPanelDrag(input)
     end
-
 end)
 
 UserInputService.InputChanged:Connect(function(input)
+    if not panelDragging then return end
 
-    if panelDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+    local isMouseMove = input.UserInputType == Enum.UserInputType.MouseMovement
+    local isTouchMove = input.UserInputType == Enum.UserInputType.Touch
+        and input == panelDragInput
 
+    if isMouseMove or isTouchMove then
         local delta = input.Position - panelDragStart
-
         frame.Position = UDim2.new(
-
             panelStartPos.X.Scale, panelStartPos.X.Offset + delta.X,
-
             panelStartPos.Y.Scale, panelStartPos.Y.Offset + delta.Y
-
         )
-
     end
-
 end)
 
+UserInputService.InputEnded:Connect(function(input)
+    if panelDragging and (
+        input.UserInputType == Enum.UserInputType.Touch
+        or input.UserInputType == Enum.UserInputType.MouseButton1
+    ) then
+        stopPanelDrag(input)
+    end
+end)
 
 
 -- WAIT
