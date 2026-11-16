@@ -162,6 +162,7 @@ local EXCLUDED_CRYSTAL_POSITIONS = {
     Vector3.new(-171.122, 2.406, 165.244),
     Vector3.new(-193.014, 1.973, 193.48),
     Vector3.new(-149.8, 14.536, 148.602),
+    Vector3.new(0.513, 10.398, 245.487),
 }
 
 local function isExcludedCrystal(crystal)
