@@ -1363,7 +1363,7 @@ local function SendWebhook(title, description, color, fields, imageUrl, thumbUrl
     local f = {}
     for _, v in ipairs(fields) do table.insert(f, v) end
     PostWebhook(WEBHOOK_URL, {
-        username   = "SEVER BANG DUL",
+        username   = "SERVER BANG DUL",
         avatar_url = WEBHOOK_AVATAR,
         content    = BuildContent(mention, captionType),
         embeds     = { BuildEmbed(title, description, color, f, imageUrl, thumbUrl) },
@@ -1384,7 +1384,7 @@ local function SendMonitorStartedWebhook(allPlayers, names)
     end
 
     PostWebhook(url, {
-        username   = "SEVER BANG DUL",
+        username   = "SERVER BANG DUL",
         avatar_url = WEBHOOK_AVATAR,
         embeds     = { BuildEmbed(
             EMOJI_STARTER .. " Monitor Started",
@@ -1407,9 +1407,9 @@ local function SendMonitorStoppedWebhook()
     end
 
     PostWebhook(url, {
-        username   = "SEVER BANG DUL",
+        username   = "SERVER BANG DUL",
         avatar_url = WEBHOOK_AVATAR,
-        embeds     = { { title = "🔴 WEBHOOK SEVER BANG DUL off dulu, silahkan cek akun masing masing" } },
+        embeds     = { { title = "🔴 WEBHOOK SERVER BANG DUL off dulu, silahkan cek akun masing masing" } },
     }, true)
 end
 
@@ -2831,7 +2831,7 @@ local function StartMonitoring()
                 LeaveTimers[pId] = nil
                 local notBackContent = BuildContent(mentionStr, "notback")
                 PostWebhook(WEBHOOK_URL, {
-                    username   = "SEVER BANG DUL",
+                    username   = "SERVER BANG DUL",
                     avatar_url = WEBHOOK_AVATAR,
                     content    = notBackContent,
                     embeds     = { BuildEmbed(EMOJI_NOTBACK .. " Player Tidak Kembali", "Pemain ini belum balik lagi ke server, semoga aman ya~", TierColors.NotBack, {
