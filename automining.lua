@@ -343,7 +343,7 @@ gui.Parent = guiParent
 
 local frame = Instance.new("Frame")
 
-frame.Size = UDim2.fromOffset(300, 325)
+frame.Size = UDim2.fromOffset(300, 385)
 
 frame.Position = UDim2.new(0.5, -150, 0.65, 0)
 
@@ -482,6 +482,38 @@ local offButton = makeButton("OFF MINING", 125, Color3.fromRGB(160, 45, 45))
 local sellButton = makeButton("SELL MANUAL", 165, Color3.fromRGB(20, 125, 55))
 
 local autoSellButton = makeButton("AUTO SELL: OFF", 205, Color3.fromRGB(75, 75, 90))
+autoSellButton.Size = UDim2.new(1, -125, 0, 35)
+
+local autoSellIntervalInput = Instance.new("TextBox")
+autoSellIntervalInput.Name = "AutoSellIntervalSeconds"
+autoSellIntervalInput.Size = UDim2.fromOffset(95, 35)
+autoSellIntervalInput.Position = UDim2.fromOffset(195, 205)
+autoSellIntervalInput.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+autoSellIntervalInput.TextColor3 = Color3.fromRGB(235, 235, 235)
+autoSellIntervalInput.PlaceholderColor3 = Color3.fromRGB(130, 130, 130)
+autoSellIntervalInput.PlaceholderText = "Detik"
+autoSellIntervalInput.Text = "60"
+autoSellIntervalInput.TextSize = 12
+autoSellIntervalInput.Font = Enum.Font.GothamBold
+autoSellIntervalInput.ClearTextOnFocus = false
+autoSellIntervalInput.BorderSizePixel = 0
+autoSellIntervalInput.TextXAlignment = Enum.TextXAlignment.Center
+autoSellIntervalInput.Parent = frame
+Instance.new("UICorner", autoSellIntervalInput).CornerRadius = UDim.new(0, 6)
+
+local function getAutoSellInterval()
+    local seconds = tonumber(autoSellIntervalInput.Text)
+    if not seconds then
+        seconds = 60
+    end
+    seconds = math.floor(seconds)
+    return math.clamp(seconds, 5, 3600)
+end
+
+autoSellIntervalInput.FocusLost:Connect(function()
+    local seconds = getAutoSellInterval()
+    autoSellIntervalInput.Text = tostring(seconds)
+end)
 
 
 
@@ -489,7 +521,7 @@ local status = Instance.new("TextLabel")
 
 status.Size = UDim2.new(1, -20, 0, 20)
 
-status.Position = UDim2.fromOffset(10, 287)
+status.Position = UDim2.fromOffset(10, 365)
 
 status.BackgroundTransparency = 1
 
@@ -561,7 +593,7 @@ local webhookInput = Instance.new("TextBox")
 
 webhookInput.Name = "AutoSellWebhookURL"
 
-webhookInput.Size = UDim2.new(1, -20, 0, 28)
+webhookInput.Size = UDim2.new(1, -105, 0, 28)
 
 webhookInput.Position = UDim2.fromOffset(10, 255)
 
@@ -589,7 +621,89 @@ webhookInput.ClipsDescendants = true
 
 webhookInput.Parent = frame
 
+
 Instance.new("UICorner", webhookInput).CornerRadius = UDim.new(0, 6)
+
+-- CONFIG MBGHangout: menyimpan URL webhook Auto Sell di executor.
+-- Tidak menyimpan kredensial lain atau mengubah alur mining.
+local CONFIG_NAME = "MBGHangout"
+local CONFIG_FILE = CONFIG_NAME .. ".json"
+local statusWebhookInput
+
+local saveConfigButton = Instance.new("TextButton")
+saveConfigButton.Name = "SaveMBGHangoutConfig"
+saveConfigButton.Size = UDim2.fromOffset(85, 28)
+saveConfigButton.Position = UDim2.fromOffset(205, 255)
+saveConfigButton.BackgroundColor3 = Color3.fromRGB(35, 115, 75)
+saveConfigButton.Text = "SAVE"
+saveConfigButton.TextColor3 = Color3.new(1, 1, 1)
+saveConfigButton.TextSize = 10
+saveConfigButton.Font = Enum.Font.GothamBold
+saveConfigButton.BorderSizePixel = 0
+saveConfigButton.Parent = frame
+Instance.new("UICorner", saveConfigButton).CornerRadius = UDim.new(0, 6)
+
+local function loadMBGHangoutConfig()
+    if not (isfile and readfile) then
+        return false, "Executor tidak mendukung baca file"
+    end
+
+    local ok, result = pcall(function()
+        if not isfile(CONFIG_FILE) then
+            return false
+        end
+
+        local data = HttpService:JSONDecode(readfile(CONFIG_FILE))
+        if type(data) ~= "table" then
+            error("Format config tidak valid")
+        end
+
+        webhookInput.Text = tostring(data.autoSellWebhook or "")
+        statusWebhookInput.Text = tostring(data.statusWebhook or "")
+        autoSellIntervalInput.Text = tostring(data.autoSellIntervalSeconds or 60)
+        return true
+    end)
+
+    if not ok then
+        warn("[MBGHangout] Gagal memuat config:", result)
+        return false, tostring(result)
+    end
+    return result, result and "Config dimuat" or "Config belum ada"
+end
+
+local function saveMBGHangoutConfig()
+    if not writefile then
+        return false, "Executor tidak mendukung writefile"
+    end
+
+    local data = {
+        name = CONFIG_NAME,
+        autoSellWebhook = (webhookInput.Text or ""):match("^%s*(.-)%s*$"),
+        statusWebhook = (statusWebhookInput and statusWebhookInput.Text or ""):match("^%s*(.-)%s*$"),
+        autoSellIntervalSeconds = getAutoSellInterval()
+    }
+
+    local ok, err = pcall(function()
+        writefile(CONFIG_FILE, HttpService:JSONEncode(data))
+    end)
+
+    if not ok then
+        warn("[MBGHangout] Gagal menyimpan config:", err)
+        return false, tostring(err)
+    end
+    return true, "Config MBGHangout tersimpan"
+end
+
+saveConfigButton.MouseButton1Click:Connect(function()
+    local ok, message = saveMBGHangoutConfig()
+    status.Text = message
+    saveConfigButton.Text = ok and "SAVED" or "ERROR"
+    task.delay(1.5, function()
+        if saveConfigButton and saveConfigButton.Parent then
+            saveConfigButton.Text = "SAVE"
+        end
+    end)
+end)
 
 local webhookInputPadding = Instance.new("UIPadding")
 
@@ -602,6 +716,108 @@ webhookInputPadding.Parent = webhookInput
 
 
 local webhookExpanded = true
+
+
+-- WEBHOOK STATUS AKUN: hanya status akun sendiri, bukan aktivitas pemain lain.
+local statusWebhookHeader = Instance.new("TextLabel")
+statusWebhookHeader.Name = "StatusWebhookHeader"
+statusWebhookHeader.Size = UDim2.new(1, -20, 0, 16)
+statusWebhookHeader.Position = UDim2.fromOffset(10, 292)
+statusWebhookHeader.BackgroundTransparency = 1
+statusWebhookHeader.Text = "📡 Webhook Status / Player In-Out"
+statusWebhookHeader.TextColor3 = Color3.fromRGB(130, 130, 130)
+statusWebhookHeader.Font = Enum.Font.Gotham
+statusWebhookHeader.TextSize = 10
+statusWebhookHeader.TextXAlignment = Enum.TextXAlignment.Left
+statusWebhookHeader.Parent = frame
+
+statusWebhookInput = Instance.new("TextBox")
+statusWebhookInput.Name = "StatusWebhookURL"
+statusWebhookInput.Size = UDim2.new(1, -105, 0, 28)
+statusWebhookInput.Position = UDim2.fromOffset(10, 310)
+statusWebhookInput.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+statusWebhookInput.TextColor3 = Color3.fromRGB(220, 220, 220)
+statusWebhookInput.PlaceholderColor3 = Color3.fromRGB(100, 100, 100)
+statusWebhookInput.PlaceholderText = "Paste webhook Discord..."
+statusWebhookInput.Text = ""
+statusWebhookInput.TextSize = 10
+statusWebhookInput.Font = Enum.Font.Gotham
+statusWebhookInput.ClearTextOnFocus = false
+statusWebhookInput.BorderSizePixel = 0
+statusWebhookInput.TextXAlignment = Enum.TextXAlignment.Left
+statusWebhookInput.Parent = frame
+Instance.new("UICorner", statusWebhookInput).CornerRadius = UDim.new(0, 6)
+
+local statusWebhookPadding = Instance.new("UIPadding")
+statusWebhookPadding.PaddingLeft = UDim.new(0, 8)
+statusWebhookPadding.PaddingRight = UDim.new(0, 8)
+statusWebhookPadding.Parent = statusWebhookInput
+
+local saveStatusWebhookButton = Instance.new("TextButton")
+saveStatusWebhookButton.Name = "SaveStatusWebhook"
+saveStatusWebhookButton.Size = UDim2.fromOffset(85, 28)
+saveStatusWebhookButton.Position = UDim2.fromOffset(205, 310)
+saveStatusWebhookButton.BackgroundColor3 = Color3.fromRGB(35, 115, 75)
+saveStatusWebhookButton.Text = "SAVE"
+saveStatusWebhookButton.TextColor3 = Color3.new(1, 1, 1)
+saveStatusWebhookButton.TextSize = 10
+saveStatusWebhookButton.Font = Enum.Font.GothamBold
+saveStatusWebhookButton.BorderSizePixel = 0
+saveStatusWebhookButton.Parent = frame
+Instance.new("UICorner", saveStatusWebhookButton).CornerRadius = UDim.new(0, 6)
+
+local function sendMiningStatusWebhook(eventName, detail)
+    local url = (statusWebhookInput.Text or ""):match("^%s*(.-)%s*$")
+    if url == "" or not requestFunc then return end
+
+    local payload = {
+        username = "MBG • Mining Status",
+        embeds = {{
+            title = "⛏️ " .. tostring(eventName),
+            description = tostring(detail or ""),
+            color = 3066993,
+            fields = {
+                { name = "Player", value = player.Name, inline = true },
+                { name = "User ID", value = tostring(player.UserId), inline = true },
+                { name = "Waktu", value = os.date("%d-%m-%Y %H:%M:%S"), inline = false }
+            },
+            footer = { text = "Crystal Auto Mining • MBGHangout" }
+        }}
+    }
+
+    task.spawn(function()
+        pcall(function()
+            requestFunc({
+                Url = url,
+                Method = "POST",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body = HttpService:JSONEncode(payload)
+            })
+        end)
+    end)
+end
+
+-- Muat otomatis setelah kedua kolom webhook tersedia.
+do
+    local loaded, message = loadMBGHangoutConfig()
+    if loaded then
+        status.Text = "Config MBGHangout dimuat"
+    elseif message ~= "Config belum ada" then
+        warn("[MBGHangout] " .. message)
+    end
+end
+
+saveStatusWebhookButton.MouseButton1Click:Connect(function()
+    local saved, message = saveMBGHangoutConfig()
+    status.Text = saved and "Config MBGHangout tersimpan" or message
+    saveStatusWebhookButton.Text = saved and "SAVED" or "ERROR"
+    task.delay(1.5, function()
+        if saveStatusWebhookButton and saveStatusWebhookButton.Parent then
+            saveStatusWebhookButton.Text = "SAVE"
+        end
+    end)
+end)
+
 
 webhookHeader.MouseButton1Click:Connect(function()
 
@@ -725,9 +941,95 @@ local logoImage = BRAND_ICON
 
 local getAsset = getcustomasset or getsynasset
 
-local requestFunc = (syn and syn.request) or (http and http.request)
+local requestFunc = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
 
-    or http_request or (fluxus and fluxus.request) or request
+
+-- PLAYER IN / OUT WEBHOOK
+-- Avatar langsung dari Roblox; tanpa watermark atau background Cloudinary.
+local function getPlayerHeadshotUrl(targetPlayer)
+    if not requestFunc then return nil end
+
+    local ok, response = pcall(function()
+        return requestFunc({
+            Url = "https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds="
+                .. tostring(targetPlayer.UserId)
+                .. "&size=420x420&format=Png&isCircular=false",
+            Method = "GET",
+            Headers = { ["Content-Type"] = "application/json" }
+        })
+    end)
+
+    if not ok or type(response) ~= "table" then return nil end
+    local raw = response.Body or response.body
+    if not raw or raw == "" then return nil end
+
+    local decodedOK, decoded = pcall(function()
+        return HttpService:JSONDecode(raw)
+    end)
+
+    if not decodedOK or type(decoded) ~= "table"
+        or type(decoded.data) ~= "table" or not decoded.data[1] then
+        return nil
+    end
+
+    return decoded.data[1].imageUrl
+end
+
+local function sendPlayerInOutWebhook(eventName, otherPlayer)
+    local url = (statusWebhookInput.Text or ""):match("^%s*(.-)%s*$")
+    if url == "" or not requestFunc then return end
+
+    local isJoin = eventName == "PLAYER JOIN"
+    local color = isJoin and 3066993 or 15158332
+    local symbol = isJoin and "🟢" or "🔴"
+    local avatarUrl = getPlayerHeadshotUrl(otherPlayer)
+
+    local embed = {
+        title = symbol .. " " .. eventName,
+        description = "**" .. otherPlayer.DisplayName .. "** (@" .. otherPlayer.Name .. ")",
+        color = color,
+        fields = {
+            { name = "Username", value = "@" .. otherPlayer.Name, inline = true },
+            { name = "Display Name", value = otherPlayer.DisplayName, inline = true },
+            { name = "User ID", value = tostring(otherPlayer.UserId), inline = true },
+            { name = "Waktu", value = os.date("%d-%m-%Y %H:%M:%S"), inline = false }
+        },
+        footer = { text = "MBGHangout • Player In/Out Monitor" }
+    }
+
+    if avatarUrl and avatarUrl ~= "" then
+        embed.thumbnail = { url = avatarUrl }
+    end
+
+    local payload = {
+        username = "MBG • Server Monitor",
+        embeds = { embed }
+    }
+
+    task.spawn(function()
+        pcall(function()
+            requestFunc({
+                Url = url,
+                Method = "POST",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body = HttpService:JSONEncode(payload)
+            })
+        end)
+    end)
+end
+
+Players.PlayerAdded:Connect(function(otherPlayer)
+    if otherPlayer ~= player then
+        sendPlayerInOutWebhook("PLAYER JOIN", otherPlayer)
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(otherPlayer)
+    if otherPlayer ~= player then
+        sendPlayerInOutWebhook("PLAYER LEAVE / DISCONNECTED", otherPlayer)
+    end
+end)
+
 
 
 
@@ -1748,7 +2050,7 @@ autoSellButton.MouseButton1Click:Connect(function()
 
     if autoSellRunning then
 
-        status.Text = "Auto Sell aktif | interval 60 detik"
+        status.Text = "Auto Sell aktif | interval " .. tostring(getAutoSellInterval()) .. " detik"
 
         task.spawn(function()
 
@@ -1756,7 +2058,9 @@ autoSellButton.MouseButton1Click:Connect(function()
 
                 local elapsed = 0
 
-                while elapsed < 60 and autoSellRunning and not destroyed do
+                local intervalSeconds = getAutoSellInterval()
+
+                while elapsed < intervalSeconds and autoSellRunning and not destroyed do
 
                     task.wait(1)
 
@@ -1767,6 +2071,7 @@ autoSellButton.MouseButton1Click:Connect(function()
                 if autoSellRunning and not destroyed then
 
                     autoSellOnce()
+                    status.Text = "Auto Sell aktif | interval " .. tostring(getAutoSellInterval()) .. " detik"
 
                 end
 
@@ -1804,6 +2109,7 @@ onButton.MouseButton1Click:Connect(function()
 
     status.Text = "Memulai..."
 
+    sendMiningStatusWebhook("MINING DIMULAI", "Auto Mining pada akun ini mulai berjalan.")
     setFloatStatus(true)
 
     task.spawn(miningLoop)
@@ -1817,7 +2123,7 @@ offButton.MouseButton1Click:Connect(function()
     running = false
 
     status.Text = "Menghentikan..."
-
+    sendMiningStatusWebhook("MINING DIHENTIKAN", "Auto Mining pada akun ini dihentikan.")
     setFloatStatus(false)
 
 end)
@@ -1869,6 +2175,7 @@ player.CharacterAdded:Connect(function(character)
         if noAnimation then
             setNoAnimation(true)
         end
+        sendMiningStatusWebhook("KARAKTER RESPAWN", "Karakter akun ini telah siap kembali.")
         if running then
             status.Text = "Karakter siap - mining dilanjutkan"
         end
