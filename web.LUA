@@ -3257,7 +3257,7 @@ local function CreateUI()
         if SCRIPT_ACTIVE then return end
 
         if not inputJoin.Text:find("discord.com/api/webhooks") then
-            startBtn.Text = "❌ WEBHOOK JOIN INVALID!"; startBtn.BackgroundColor3 = Color3.fromRGB(200,50,50)
+            startBtn.Text = "❌ WEBHOOK JOIN INVALID, Coba lagi!"; startBtn.BackgroundColor3 = Color3.fromRGB(200,50,50)
             task.wait(2); startBtn.Text = "START MONITORING"; startBtn.BackgroundColor3 = Color3.fromRGB(0,180,100)
             return
         end
