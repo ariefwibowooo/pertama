@@ -1571,7 +1571,7 @@ local function SendEventWebhook(eventData, rawText)
     local isCharybdis = (eventData.title == "🌪️ Charybdis Boss Dimulai!")
     local contentText = nil
     if isCharybdis then
-        contentText = "AYO SIKAT GENGZzZz <@&" .. ROLE_NELAYAN_ID .. ">"
+        contentText = "AYO SIKAT GENGZzZz"
     end
 
     PostWebhook(url, {
