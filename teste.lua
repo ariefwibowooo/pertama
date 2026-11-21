@@ -590,7 +590,7 @@ local EventHuntData = {
             "stronger sky winds is active!",
         },
         title        = "🌬️ Stronger Sky Winds Dimulai!",
-        description  = "Stronger Sky Winds aktif — meningkatkan peluang FORGOTTEN saat Voyage.",
+        description  = "Stronger Sky Winds aktif — efek mengikuti deskripsi event yang muncul di game.",
         color        = 6724044,
         emoji        = "🌬️",
         thumbUrl     = EventImageURL["Stronger Sky Winds"],
@@ -1571,7 +1571,7 @@ local function SendEventWebhook(eventData, rawText)
     local isCharybdis = (eventData.title == "🌪️ Charybdis Boss Dimulai!")
     local contentText = nil
     if isCharybdis then
-        contentText = "AYO SIKAT GENGZzZz"
+        contentText = "AYO SIKAT GENGZzZz <@&" .. ROLE_NELAYAN_ID .. ">"
     end
 
     PostWebhook(url, {
@@ -2916,7 +2916,7 @@ local function CreateUI()
     topBarFix.BackgroundColor3 = Color3.fromRGB(30, 30, 30); topBarFix.BorderSizePixel = 0; topBarFix.Parent = topBar
 
     local title = Instance.new("TextLabel")
-    title.Text = "🎣 Main Bareng Gengz Monitor (21 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
+    title.Text = "🎣 Main Bareng Gengz Monitor (16 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
     title.BackgroundTransparency = 1; title.TextColor3 = Color3.fromRGB(255, 255, 255)
     title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left; title.Parent = topBar
 
