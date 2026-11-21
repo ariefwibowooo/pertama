@@ -240,7 +240,7 @@ local EventImageURL = {
     ["Wintertusk Mammofin"]     = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/WintertuskMammofin.png",
     ["Pyrocoil"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Pyrocoil.png",
     ["CharybdisBossEvent"]      = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/CharybdisBossEvent.png",
-    ["Stronger Sky Winds"]      = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Kapal-Terbank.png",
+    ["Stronger Sky Winds"]     = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Kapal-Terbank.png",
     ["next"]                    = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/NEXTT.png",
     ["treasure hunt"]           = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/treasure.png",
     ["Crystal"]                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/crystal.png",
@@ -590,7 +590,7 @@ local EventHuntData = {
             "stronger sky winds is active!",
         },
         title        = "🌬️ Stronger Sky Winds Dimulai!",
-        description  = "Stronger Sky Winds aktif — meningkatkan peluang FORGOTTEN saat Voyage.",
+        description  = "Stronger Sky Winds aktif — efek mengikuti deskripsi event yang muncul di game.",
         color        = 6724044,
         emoji        = "🌬️",
         thumbUrl     = EventImageURL["Stronger Sky Winds"],
@@ -1389,7 +1389,7 @@ local function SendWebhook(title, description, color, fields, imageUrl, thumbUrl
     local f = {}
     for _, v in ipairs(fields) do table.insert(f, v) end
     PostWebhook(WEBHOOK_URL, {
-        username   = "SERVER BANG DUL",
+        username   = "SERVER GADISSS",
         avatar_url = WEBHOOK_AVATAR,
         content    = BuildContent(mention, captionType),
         embeds     = { BuildEmbed(title, description, color, f, imageUrl, thumbUrl) },
@@ -1410,7 +1410,7 @@ local function SendMonitorStartedWebhook(allPlayers, names)
     end
 
     PostWebhook(url, {
-        username   = "SERVER BANG DUL",
+        username   = "SERVER GADISSS",
         avatar_url = WEBHOOK_AVATAR,
         embeds     = { BuildEmbed(
             EMOJI_STARTER .. " Monitor Started",
@@ -1433,9 +1433,9 @@ local function SendMonitorStoppedWebhook()
     end
 
     PostWebhook(url, {
-        username   = "SERVER BANG DUL",
+        username   = "SERVER GADISSS",
         avatar_url = WEBHOOK_AVATAR,
-        embeds     = { { title = "🔴 WEBHOOK SERVER BANG DUL off dulu, silahkan cek akun masing masing" } },
+        embeds     = { { title = "🔴 WEBHOOK SERVER GADIS off dulu, silahkan cek akun masing masing" } },
     }, true)
 end
 
@@ -1571,7 +1571,7 @@ local function SendEventWebhook(eventData, rawText)
     local isCharybdis = (eventData.title == "🌪️ Charybdis Boss Dimulai!")
     local contentText = nil
     if isCharybdis then
-        contentText = "AYO SIKAT GENGZzZz"
+        contentText = "AYO SIKAT GENGZzZz <@&" .. ROLE_NELAYAN_ID .. ">"
     end
 
     PostWebhook(url, {
@@ -2861,7 +2861,7 @@ local function StartMonitoring()
                 LeaveTimers[pId] = nil
                 local notBackContent = BuildContent(mentionStr, "notback")
                 PostWebhook(WEBHOOK_URL, {
-                    username   = "SERVER BANG DUL",
+                    username   = "SERVER GADISSS",
                     avatar_url = WEBHOOK_AVATAR,
                     content    = notBackContent,
                     embeds     = { BuildEmbed(EMOJI_NOTBACK .. " Player Tidak Kembali", "Pemain ini belum balik lagi ke server, semoga aman ya~", TierColors.NotBack, {
@@ -2916,7 +2916,7 @@ local function CreateUI()
     topBarFix.BackgroundColor3 = Color3.fromRGB(30, 30, 30); topBarFix.BorderSizePixel = 0; topBarFix.Parent = topBar
 
     local title = Instance.new("TextLabel")
-    title.Text = "🎣 Main Bareng Gengz Monitor (21 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
+    title.Text = "🎣 Main Bareng Gengz Monitor (16 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
     title.BackgroundTransparency = 1; title.TextColor3 = Color3.fromRGB(255, 255, 255)
     title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left; title.Parent = topBar
 
@@ -3287,7 +3287,7 @@ local function CreateUI()
         if SCRIPT_ACTIVE then return end
 
         if not inputJoin.Text:find("discord.com/api/webhooks") then
-            startBtn.Text = "❌ WEBHOOK JOIN INVALID, Coba lagi!"; startBtn.BackgroundColor3 = Color3.fromRGB(200,50,50)
+            startBtn.Text = "❌ WEBHOOK JOIN INVALID!"; startBtn.BackgroundColor3 = Color3.fromRGB(200,50,50)
             task.wait(2); startBtn.Text = "START MONITORING"; startBtn.BackgroundColor3 = Color3.fromRGB(0,180,100)
             return
         end
