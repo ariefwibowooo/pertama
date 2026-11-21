@@ -595,6 +595,7 @@ local EventHuntData = {
         emoji        = "🌬️",
         thumbUrl     = EventImageURL["Stronger Sky Winds"],
         isVoyage     = true,
+        isStrongerSkyWinds = true,
     },
     --[[ dinonaktifkan -- Treasure Hunt
     {
@@ -1560,9 +1561,35 @@ local function ScheduleEventEndNotification(eventData, eventStartTime)
     end)
 end
 
+local function GetStrongerSkyWindsDescription()
+    -- Ambil Description langsung dari ModuleScript event di ReplicatedStorage.
+    local eventsFolder = ReplicatedStorage:FindFirstChild("Events")
+    local eventModule = eventsFolder and eventsFolder:FindFirstChild("Stronger Sky Winds")
+    if not eventModule or not eventModule:IsA("ModuleScript") then
+        return nil
+    end
+
+    local ok, eventConfig = pcall(require, eventModule)
+    if ok and type(eventConfig) == "table"
+        and type(eventConfig.Description) == "string"
+        and eventConfig.Description ~= "" then
+        return eventConfig.Description
+    end
+
+    return nil
+end
+
 local function SendEventWebhook(eventData, rawText)
     local url = (WEBHOOK_EVENT ~= "") and WEBHOOK_EVENT or WEBHOOK_URL
     if url == "" then return end
+
+    local embedDescription = eventData.description
+    if eventData.isStrongerSkyWinds then
+        -- Prioritaskan Description dari ReplicatedStorage.Events["Stronger Sky Winds"].
+        embedDescription = GetStrongerSkyWindsDescription() or eventData.description
+    elseif eventData.isVoyage and rawText and rawText ~= "" then
+        embedDescription = rawText
+    end
 
     -- Patokan waktu = saat script pertama kali menemukan event.
     local eventStartTime = os.time()
@@ -1580,7 +1607,7 @@ local function SendEventWebhook(eventData, rawText)
         content    = contentText,
         embeds     = { BuildEmbed(
             eventData.title,
-            (eventData.isVoyage and rawText and rawText ~= "" and rawText or eventData.description),
+            embedDescription,
             eventData.color,
             {
                 { name = SEP .. " Server",  value = SERVER_NAME,              inline = true },
