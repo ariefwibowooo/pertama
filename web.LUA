@@ -240,6 +240,7 @@ local EventImageURL = {
     ["Wintertusk Mammofin"]     = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/WintertuskMammofin.png",
     ["Pyrocoil"]                = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Pyrocoil.png",
     ["CharybdisBossEvent"]      = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/CharybdisBossEvent.png",
+    ["Stronger Sky Winds"]      = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/Kapal-Terbank.png",
     ["next"]                    = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/NEXTT.png",
     ["treasure hunt"]           = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/treasure.png",
     ["Crystal"]                 = "https://raw.githubusercontent.com/bowojan8-ctrl/FISH-IT-FOTO-ANJAY-MABAR/main/crystal.png",
@@ -561,14 +562,39 @@ local EventHuntData = {
     {
         textTriggers = {
             "a charybdis has appeared",
+            "a charybdis has appeared!",
+            "a charybdis has appeared.",
+            "a charybdis has appeared?",
             "charybdis boss battle",
+            "charybdis boss battle!",
+            "charybdis boss battle.",
             "charybdis boss fight",
+            "charybdis boss fight!",
+            "charybdis boss fight.",
         },
         title        = "🌪️ Charybdis Boss Dimulai!",
         description  = "Charybdis Boss Battle Dimulai! 🌪️",
         color        = 10181046,
         emoji        = "🌪️",
         thumbUrl     = EventImageURL["CharybdisBossEvent"],
+    },
+    {
+        textTriggers = {
+            "stronger sky winds",
+            "stronger sky winds!",
+            "stronger sky winds.",
+            "stronger sky winds?",
+            "stronger sky winds has started",
+            "stronger sky winds has started!",
+            "stronger sky winds is active",
+            "stronger sky winds is active!",
+        },
+        title        = "🌬️ Stronger Sky Winds Dimulai!",
+        description  = "Stronger Sky Winds aktif — meningkatkan peluang FORGOTTEN saat Voyage.",
+        color        = 6724044,
+        emoji        = "🌬️",
+        thumbUrl     = EventImageURL["Stronger Sky Winds"],
+        isVoyage     = true,
     },
     --[[ dinonaktifkan -- Treasure Hunt
     {
@@ -1554,7 +1580,7 @@ local function SendEventWebhook(eventData, rawText)
         content    = contentText,
         embeds     = { BuildEmbed(
             eventData.title,
-            eventData.description,
+            (eventData.isVoyage and rawText and rawText ~= "" and rawText or eventData.description),
             eventData.color,
             {
                 { name = SEP .. " Server",  value = SERVER_NAME,              inline = true },
@@ -1568,7 +1594,7 @@ local function SendEventWebhook(eventData, rawText)
         )},
     })
 
-    if eventData.isElemental then
+    if eventData.isElemental or eventData.isVoyage then
         ScheduleEventEndNotification(eventData, eventStartTime)
     end
 end
@@ -1681,9 +1707,13 @@ local function ProcessEventText(text, label)
 
         -- Edge trigger: hanya OFF -> ON yang mengirim webhook.
         if matched and not wasMatched then
+            -- Charybdis tidak memakai cooldown; event lain tetap 3600 detik.
+            local isCharybdis = evData.title:lower():find("charybdis", 1, true) ~= nil
             local now = os.time()
-            if (now - (EventCooldown[evData.title] or 0)) >= EVENT_COOLDOWN_SECONDS then
-                EventCooldown[evData.title] = now
+            if isCharybdis or (now - (EventCooldown[evData.title] or 0)) >= EVENT_COOLDOWN_SECONDS then
+                if not isCharybdis then
+                    EventCooldown[evData.title] = now
+                end
                 SendEventWebhook(evData, text)
             end
         end
@@ -2886,7 +2916,7 @@ local function CreateUI()
     topBarFix.BackgroundColor3 = Color3.fromRGB(30, 30, 30); topBarFix.BorderSizePixel = 0; topBarFix.Parent = topBar
 
     local title = Instance.new("TextLabel")
-    title.Text = "🎣 Main Bareng Gengz Monitor (16 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
+    title.Text = "🎣 Main Bareng Gengz Monitor (21 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
     title.BackgroundTransparency = 1; title.TextColor3 = Color3.fromRGB(255, 255, 255)
     title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left; title.Parent = topBar
 
