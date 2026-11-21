@@ -1545,11 +1545,12 @@ local function ScheduleEventEndNotification(eventData, eventStartTime)
             avatar_url = WEBHOOK_AVATAR,
             embeds     = { BuildEmbed(
                 eventData.title:gsub("Dimulai!", "Berakhir!"),
-                "⏰ Udah sejam lee, pikirkan secara logika next elemental event yang muncul",
+                eventData.isVoyage and "📢 PINDAH WOIIII !!!!!!" or "⏰ Udah sejam lee, pikirkan secara logika next elemental event yang muncul",
                 2303786,
                 {
-                    { name = SEP .. " Status",     value = "**SELESAI**", inline = true },
-                    { name = SEP .. " Next Event", value = "<t:" .. tostring(nextEventTime) .. ":R>", inline = true },
+                    { name = SEP .. " Status", value = "**SELESAI**", inline = true },
+                    { name = SEP .. (eventData.isVoyage and " Next Voyage" or " Next Event"),
+                      value = "<t:" .. tostring(nextEventTime) .. ":t> • <t:" .. tostring(nextEventTime) .. ":R>", inline = true },
                 },
                 nil,
                 EventImageURL["next"],
@@ -2943,7 +2944,7 @@ local function CreateUI()
     topBarFix.BackgroundColor3 = Color3.fromRGB(30, 30, 30); topBarFix.BorderSizePixel = 0; topBarFix.Parent = topBar
 
     local title = Instance.new("TextLabel")
-    title.Text = "🎣 Main Bareng Gengz Monitor (16 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
+    title.Text = "🎣 Main Bareng Gengz Monitor (21 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
     title.BackgroundTransparency = 1; title.TextColor3 = Color3.fromRGB(255, 255, 255)
     title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left; title.Parent = topBar
 
