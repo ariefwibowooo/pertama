@@ -11,7 +11,7 @@ local TweenService               = game:GetService("TweenService")
 local Workspace                  = game:GetService("Workspace")
 
 local WEBHOOK_URL                = ""
-local SERVER_NAME                = "HIHANG" -- Nama server cukup diubah dari sini
+local SERVER_NAME                = "BANG DULLL" -- Nama server cukup diubah dari sini
 local WEBHOOK_STATS              = "" -- NOTE: dipertahankan sebagai fallback URL buat "Check Player On Server"
                                       -- kalau WEBHOOK_CHECKPLAYER kosong. Embed rekap otomatis "Server Stats"
                                       -- yang dulu numpang di sini SUDAH DIHAPUS sesuai request.
@@ -118,9 +118,12 @@ local MemberList = {
     { username = "Pacarparksungjin", display = "NIA",                  id = "1132125111508541493" },
     { username = "kakcyn",           display = "kakcyn",               id = "429815854692040717" },
     { username = "canmeee7",         display = "EL",                   id = "1070290091441934416" },
+    { username = "satzy307",         display = "NAMA",                 id = "485434514449891328" },
+    { username = "S4tzyLucu",        display = "NAMA",                 id = "485434514449891328" },
     { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
-
-
+    { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
+    { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
+    { username = "USERROBLOX",       display = "NAMA",                 id = "1032602143363960833" },
 
 }
 
@@ -2944,7 +2947,7 @@ local function CreateUI()
     topBarFix.BackgroundColor3 = Color3.fromRGB(30, 30, 30); topBarFix.BorderSizePixel = 0; topBarFix.Parent = topBar
 
     local title = Instance.new("TextLabel")
-    title.Text = "🎣 Main Bareng Gengz Monitor (21 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
+    title.Text = "🎣 Main Bareng Gengz Monitor (25 Nov 26)"; title.Size = UDim2.new(1, -80, 1, 0); title.Position = UDim2.new(0, 10, 0, 0)
     title.BackgroundTransparency = 1; title.TextColor3 = Color3.fromRGB(255, 255, 255)
     title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left; title.Parent = topBar
 
