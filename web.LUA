@@ -227,7 +227,7 @@ local TribunalWitheringCoreList = { ["Tribunal Withering Core"] = true }
 --  MYTHIC TIER (embed merah, terpisah dari Secret/Ruby/Legendary)
 -- ============================================================
 local MythicFishList = {
-    "Shiny Hammerhead Shark", "Cosmic Hammerhead Shark", "Cosmic Blobfish",
+    "Shiny Hammerhead Shark", "Cosmic Hammerhead Shark", "Cosmic Blobfish", "Color Burn Basalt Ghost Shark", "Color Burn Hammerhead Shark", 
     -- tinggal nambahin string baru di sini kalau nanti ada ikan mitos lain
 }
 
